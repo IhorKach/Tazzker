@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,9 +9,10 @@ namespace Tazzker.Domain
 {
     public class TaskItem
     {
+        [Key]
+        public Guid TaskId { get; set; }
         public Guid UserId { get; set; }
         public Guid ListId { get; set; }
-        public Guid TaskId { get; set; }
         public Guid? ParentTaskId { get; set; }
 
         public string? Title { get; set; }
