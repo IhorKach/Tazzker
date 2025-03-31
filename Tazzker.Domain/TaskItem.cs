@@ -10,7 +10,7 @@ namespace Tazzker.Domain
     public class TaskItem
     {
         [Key]
-        public Guid TaskId { get; set; }
+        public Guid TaskId { get; set; } = Guid.NewGuid();
         public Guid UserId { get; set; }
         public Guid ListId { get; set; }
         public Guid? ParentTaskId { get; set; }
@@ -18,7 +18,7 @@ namespace Tazzker.Domain
         public string? Title { get; set; }
         public string? Description { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }
         public DateTime? ReminderAt { get; set; }
         public DateTime? DueTime { get; set; }

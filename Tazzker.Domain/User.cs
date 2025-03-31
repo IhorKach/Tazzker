@@ -10,10 +10,11 @@ namespace Tazzker.Domain
     public class User
     {
         [Key]
-        public Guid UserId { get; set; }
+        public Guid UserId { get; set; } = Guid.NewGuid();
         public string Username { get; set; } = null!;
-        public string HashPassword { get; set; } = null!;
-        public DateTime CreatedAt { get; set; }
+        public string Email { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     }
 }

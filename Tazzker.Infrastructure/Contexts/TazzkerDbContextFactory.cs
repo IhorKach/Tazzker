@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-namespace Tazzker.Infrastructure
+namespace Tazzker.Infrastructure.Contexts
 {
     public class TazzkerDbContextFactory : IDesignTimeDbContextFactory<TazzkerDbContext>
     {
@@ -9,7 +9,7 @@ namespace Tazzker.Infrastructure
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../TazzkerAPI"))
-                .AddJsonFile("appsettings.json", optional:false)
+                .AddJsonFile("appsettings.json", optional: false)
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<TazzkerDbContext>();

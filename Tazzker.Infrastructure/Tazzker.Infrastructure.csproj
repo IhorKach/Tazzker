@@ -14,10 +14,13 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Tazzker.Application\Tazzker.Application.csproj" />
     <ProjectReference Include="..\Tazzker.Domain\Tazzker.Domain.csproj" />
   </ItemGroup>
+
 
 </Project>
