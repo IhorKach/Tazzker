@@ -11,8 +11,11 @@ namespace Tazzker.Application.Interfaces
     {
         Task<IEnumerable<TaskItemDto>> GetAllTaskItemsAsync();
         Task<TaskItemDto?> GetTaskItemByIdAsync(Guid id);
+        Task<IEnumerable<TaskItemDto>> GetFilteredTaskItemsAsync(TaskItemFilterDto dto);
         Task<TaskItemDto> CreateTaskItemAsync(CreateTaskItemDto dto);
         Task<TaskItemDto?> UpdateTaskItemAsync(UpdateTaskItemDto dto);
         Task<bool> DeleteTaskItemAsync(Guid id);
+        Task<bool> SoftDeleteTaskItemAsync(Guid id);
+        Task AddAsync(TaskItem newTaskItem);
     }
 }

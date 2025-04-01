@@ -15,6 +15,7 @@ namespace Tazzker.Application.DTOs
         public DateTime UpdatedAt { get; set; }
         public DateTime? ReminderAt { get; set; }
         public DateTime? DueTime { get; set; }
+        public float Order { get; set; }
     }
 
     public class TaskItemDto
@@ -29,6 +30,7 @@ namespace Tazzker.Application.DTOs
         public DateTime? DueTime { get; set; }
         public bool IsCompleted { get; set; }
         public bool IsDeleted { get; set; }
+        public float Order { get; set; }
     }
 
     public class UpdateTaskItemDto
@@ -42,6 +44,17 @@ namespace Tazzker.Application.DTOs
         public DateTime? DueTime { get; set; }
         public bool IsCompleted { get; set; } 
         public bool IsDeleted { get; set; }
+        public float Order { get; set; }
+    }
+    public class TaskItemFilterDto
+    {
+        public Guid? ListId { get; set; }
+        public bool? IsCompleted { get; set; }
+        public DateTime? DueTime { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public string? SortBy { get; set; }
+        public bool Descending { get; set; } = false;
+        public float Order { get; set; }
     }
 
 }

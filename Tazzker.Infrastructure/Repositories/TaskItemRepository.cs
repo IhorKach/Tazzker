@@ -9,6 +9,7 @@ using Tazzker.Domain;
 using Tazzker.Application.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Eventing.Reader;
+using System.Net.Quic;
 
 namespace Tazzker.Infrastructure.Repositories
 {
@@ -23,9 +24,15 @@ namespace Tazzker.Infrastructure.Repositories
             _userContext = userContext;
         }
 
+
+        public async Task AddAsync(TaskItem newTaskItem) { 
+            await _context.AddAsync(newTaskItem);
+            await _context.SaveChangesAsync(); 
+        }
+
         public async Task<IEnumerable<TaskItemDto>> GetAllTaskItemsAsync()
         {
-            return await _context.TaskItems.Where(t=>t.UserId == _userContext.UserId).Select(t => new TaskItemDto
+            return await _context.TaskItems.Where(t => t.UserId == _userContext.UserId && t.IsDeleted == false).Select(t => new TaskItemDto
             {
                 ListId = t.ListId,
                 TaskId = t.TaskId,
@@ -36,13 +43,15 @@ namespace Tazzker.Infrastructure.Repositories
                 UpdatedAt = t.UpdatedAt,
                 IsDeleted = t.IsDeleted,
                 IsCompleted = t.IsCompleted,
-                ParentTaskId = t.ParentTaskId
+                ParentTaskId = t.ParentTaskId,
+                Order = t.Order
+                
             }).ToListAsync();
         }
 
         public async Task<TaskItemDto?> GetTaskItemByIdAsync(Guid id)
         {
-            var result = await _context.TaskItems.AsNoTracking().FirstOrDefaultAsync(t => t.TaskId == id);
+            var result = await _context.TaskItems.AsNoTracking().FirstOrDefaultAsync(t => t.UserId == _userContext.UserId && t.TaskId == id);
 
             return result == null ? null : new TaskItemDto
             {
@@ -56,8 +65,54 @@ namespace Tazzker.Infrastructure.Repositories
                 IsCompleted = result.IsCompleted,
                 ListId = result.ListId,
                 ParentTaskId = result.ParentTaskId,
+                Order = result.Order
             };
         }
+
+        public async Task<IEnumerable<TaskItemDto>> GetFilteredTaskItemsAsync(TaskItemFilterDto dto)
+        {
+            var query = _context.TaskItems.Where(t => t.UserId == _userContext.UserId).AsQueryable();
+
+            if (dto.ListId.HasValue)
+                query = query.Where(t => t.ListId == dto.ListId.Value);
+            if (dto.IsCompleted.HasValue)
+                query = query.Where(t => t.IsCompleted == dto.IsCompleted.Value);
+            if (dto.DueTime.HasValue)
+                query = query.Where(t => t.DueTime == dto.DueTime.Value);
+            if (dto.CreatedAt.HasValue)
+                query = query.Where(t => t.CreatedAt == dto.CreatedAt.Value);
+
+
+            if (!string.IsNullOrWhiteSpace(dto.SortBy))
+
+                query = dto.SortBy
+                    switch
+                {
+                    "CreatedAt" => dto.Descending ?
+                    query.OrderByDescending(t => t.CreatedAt)
+                    : query.OrderBy(t => t.CreatedAt),
+                    "Order" or _ => dto.Descending ?
+                   query.OrderByDescending(t => t.Order)
+                   : query.OrderBy(t => t.Order)
+                };
+
+
+            return await query.Select(t => new TaskItemDto
+            {
+                ListId = t.ListId,
+                Description = t.Description,
+                DueTime = t.DueTime,
+                IsCompleted = t.IsCompleted,
+                IsDeleted = t.IsDeleted,
+                ParentTaskId = t.ParentTaskId,
+                ReminderAt = t.ReminderAt,
+                TaskId = t.TaskId,
+                Title = t.Title,
+                UpdatedAt = t.UpdatedAt,
+                Order = t.Order
+            }).ToListAsync();
+        }
+
 
         public async Task<TaskItemDto> CreateTaskItemAsync(CreateTaskItemDto dto)
         {
@@ -70,7 +125,9 @@ namespace Tazzker.Infrastructure.Repositories
                 DueTime = dto.DueTime,
                 ReminderAt = dto.ReminderAt,
                 UpdatedAt = dto.UpdatedAt,
-                ParentTaskId = dto.ParentTaskId
+                ParentTaskId = dto.ParentTaskId,
+                Order = dto.Order
+                
             };
 
             await _context.TaskItems.AddAsync(newTask);
@@ -87,9 +144,10 @@ namespace Tazzker.Infrastructure.Repositories
                 UpdatedAt = newTask.UpdatedAt,
                 IsCompleted = newTask.IsCompleted,
                 IsDeleted = newTask.IsDeleted,
-                ParentTaskId = newTask.ParentTaskId
-                
-                
+                ParentTaskId = newTask.ParentTaskId,
+                Order = newTask.Order
+
+
             };
         }
         public async Task<TaskItemDto?> UpdateTaskItemAsync(UpdateTaskItemDto dto)
@@ -97,7 +155,6 @@ namespace Tazzker.Infrastructure.Repositories
             var task = await _context.TaskItems.FirstOrDefaultAsync(x => x.TaskId == dto.TaskId && x.UserId == _userContext.UserId);
 
             if (task == null) return null;
-
             task.ListId = dto.ListId;
             task.ParentTaskId = dto.ParentTaskId;
             task.Title = dto.Title;
@@ -107,6 +164,7 @@ namespace Tazzker.Infrastructure.Repositories
             task.UpdatedAt = DateTime.UtcNow;
             task.IsCompleted = dto.IsCompleted;
             task.IsDeleted = dto.IsDeleted;
+            task.Order = dto.Order;
 
             await _context.SaveChangesAsync();
 
@@ -121,7 +179,8 @@ namespace Tazzker.Infrastructure.Repositories
                 UpdatedAt = task.UpdatedAt,
                 IsCompleted = task.IsCompleted,
                 IsDeleted = task.IsDeleted,
-                ParentTaskId = task.ParentTaskId
+                ParentTaskId = task.ParentTaskId,
+                Order = task.Order
             };
         }
 
@@ -134,6 +193,14 @@ namespace Tazzker.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
 
+        }
+        public async Task<bool> SoftDeleteTaskItemAsync(Guid id)
+        {
+            var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.TaskId == id && t.UserId == _userContext.UserId);
+            if (task == null) return false;
+            task.IsDeleted = true;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

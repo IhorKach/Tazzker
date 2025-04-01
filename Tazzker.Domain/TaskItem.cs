@@ -14,6 +14,7 @@ namespace Tazzker.Domain
         public Guid UserId { get; set; }
         public Guid ListId { get; set; }
         public Guid? ParentTaskId { get; set; }
+        public float Order {  get; set; } = 0f;
 
         public string? Title { get; set; }
         public string? Description { get; set; }
