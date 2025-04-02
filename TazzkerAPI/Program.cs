@@ -8,6 +8,7 @@ using Tazzker.Infrastructure.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using TazzkerAPI.Middleware;
 namespace TazzkerAPI
 {
     public class Program
@@ -107,7 +108,7 @@ namespace TazzkerAPI
 
 
             app.UseHttpsRedirection();
-
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.UseAuthentication();
             app.UseAuthorization();

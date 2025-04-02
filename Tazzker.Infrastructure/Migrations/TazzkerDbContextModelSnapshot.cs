@@ -46,6 +46,9 @@ namespace Tazzker.Infrastructure.Migrations
                     b.Property<Guid>("ListId")
                         .HasColumnType("uuid");
 
+                    b.Property<float>("Order")
+                        .HasColumnType("real");
+
                     b.Property<Guid?>("ParentTaskId")
                         .HasColumnType("uuid");
 

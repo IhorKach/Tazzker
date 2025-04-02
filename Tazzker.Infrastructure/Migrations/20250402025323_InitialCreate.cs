@@ -19,6 +19,7 @@ namespace Tazzker.Infrastructure.Migrations
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     ListId = table.Column<Guid>(type: "uuid", nullable: false),
                     ParentTaskId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Order = table.Column<float>(type: "real", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),

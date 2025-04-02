@@ -4,15 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tazzker.Application.DTOs;
+using Tazzker.Domain;
 
 namespace Tazzker.Application.Interfaces
 {
     public interface ITaskListRepository
     {
-        Task<IEnumerable<TaskListDto>> GetAllTaskListsAsync();
-        Task<TaskListDto?> GetTaskListByIdAsync(Guid id);
-        Task<TaskListDto?> UpdateTaskListAsync(UpdateTaskListDto dto);
-        Task<bool> DeleteTaskListAsync(Guid id);
-        Task<TaskListDto> CreateTaskListAsync(CreateTaskListDto dto);
+        Task<IEnumerable<TaskList>> GetAllTaskListsAsync(Guid userId);
+        Task<TaskList?> GetTaskListByIdAsync(Guid taskListId, Guid userId);
+        Task<TaskList> UpdateTaskListAsync(TaskList updatedTaskList);
+        Task<bool> DeleteTaskListAsync(Guid taskListId, Guid userId);
+        Task<TaskList> CreateTaskListAsync(TaskList newTaskList);
     }
 }

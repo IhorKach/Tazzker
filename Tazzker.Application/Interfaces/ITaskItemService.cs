@@ -11,7 +11,7 @@ namespace Tazzker.Application.Interfaces
     public interface ITaskItemService
     {
         Task<IEnumerable<TaskItemDto>> GetAllTaskItemsAsync();
-        Task<TaskItemDto?> GetTaskItemByIdAsync(Guid id);
+        Task<TaskItemDto?> GetTaskItemByIdAsync(Guid taskId);
         Task<TaskItemDto> CreateTaskItemAsync(CreateTaskItemDto dto);
 
         Task<IEnumerable<TaskItemDto>> GetFilteredTaskItemsAsync(TaskItemFilterDto dto);

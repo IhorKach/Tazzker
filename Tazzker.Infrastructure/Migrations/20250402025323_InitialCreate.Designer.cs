@@ -12,7 +12,7 @@ using Tazzker.Infrastructure.Contexts;
 namespace Tazzker.Infrastructure.Migrations
 {
     [DbContext(typeof(TazzkerDbContext))]
-    [Migration("20250331025229_InitialCreate")]
+    [Migration("20250402025323_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -48,6 +48,9 @@ namespace Tazzker.Infrastructure.Migrations
 
                     b.Property<Guid>("ListId")
                         .HasColumnType("uuid");
+
+                    b.Property<float>("Order")
+                        .HasColumnType("real");
 
                     b.Property<Guid?>("ParentTaskId")
                         .HasColumnType("uuid");

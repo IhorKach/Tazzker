@@ -27,7 +27,7 @@ namespace Tazzker.Tests
 
             TaskItem? capturedTask = null;
 
-            mockRepo.Setup(x => x.AddAsync(It.IsAny<TaskItem>()))
+            mockRepo.Setup(x => x.CreateTaskItemAsync(It.IsAny<TaskItem>()))
                 .Callback<TaskItem>(t=>capturedTask = t)
                 .Returns(Task.CompletedTask);
 
