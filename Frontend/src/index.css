@@ -1,6 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
+
+
 /* 
 @layer base {
   :root {
@@ -68,6 +74,14 @@
 } */
 /* 
 ---break--- */
+
+
+
+
+
+
+
+/* 
 @layer base {
   :root {
     --sidebar-background: 0 0% 98%;
@@ -92,6 +106,7 @@
 }
 /* 
 ---break--- */
+/*
 @layer base {
   * {
     @apply border-border;
@@ -99,4 +114,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
+} */

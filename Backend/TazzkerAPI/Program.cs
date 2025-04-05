@@ -96,17 +96,30 @@ namespace TazzkerAPI
                     };
                 });
 
-            builder.WebHost.UseUrls("http://*:8080");
+            //builder.WebHost.UseUrls("http://*:5173");
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:5173", "https://localhost:5173") // обе версии
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+
 
             var app = builder.Build();
 
+            app.UseCors("AllowFrontend");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseRouting();
 
             app.UseHttpsRedirection();
             app.UseMiddleware<ExceptionHandlingMiddleware>();
