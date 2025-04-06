@@ -56,7 +56,7 @@ namespace TazzkerAPI.Controllers
             return result == null ? NotFound("No such task to update!") : Ok(result);
         }
 
-        [HttpDelete("/DeleteTask{id}")]
+        [HttpDelete("/DeleteTask/{id}")]
         public async Task<IActionResult> DeleteTaskItem(Guid id)
         {
             var result = await _taskItemService.DeleteTaskItemAsync(id);

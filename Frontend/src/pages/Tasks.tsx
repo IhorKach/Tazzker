@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { TaskCard } from '@/components/TaskCard'
 import axios from 'axios'
 import type { UpdateTaskItemDto } from '@/types/UpdateTaskItemDto'
+import { TaskCreateForm } from "@/components/TaskCreateForm"
 
 type Task = {
   taskId: string
@@ -19,11 +20,13 @@ type Task = {
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([])
+  const listId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  const parentTaskId = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 
   const fetchTasks = async () => {
     const token = localStorage.getItem('token')
     try {
-      const res = await axios.get('https://localhost:7164/getAllTasks', {
+      const res = await axios.get<Task[]>('https://localhost:7164/getAllTasks', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setTasks([...res.data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
@@ -52,11 +55,13 @@ export default function Tasks() {
 
       const updatedTask = res.data
       setTasks((prev) =>
-        [...prev].map((task) =>
-          task.taskId === taskId
-            ? { ...task, isCompleted: updatedTask.isCompleted }
-            : task
-        )
+        [...prev]
+          .map((task) =>
+            task.taskId === taskId
+              ? { ...task, isCompleted: updatedTask.isCompleted }
+              : task
+          )
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       )
     } catch (err) {
       console.error('Ошибка при переключении задачи:', err)
@@ -79,8 +84,18 @@ export default function Tasks() {
     }
   }
 
-  const handleRemove = (id: string) => {
-    console.warn('Удалить пока не работает:', id)
+  const handleRemove = async (taskId: string) => {
+    const token = localStorage.getItem('token')
+    try {
+      await axios.delete(`https://localhost:7164/DeleteTask/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      })
+      setTasks(prev => prev.filter(task => task.taskId !== taskId))
+    } catch (err) {
+      console.error('Ошибка при удалении задачи:', err)
+    }
   }
 
   useEffect(() => {
@@ -88,26 +103,37 @@ export default function Tasks() {
   }, [])
 
   return (
-    <div className="flex flex-col gap-4 p-6">
-      {tasks.length > 0 ? (
-        tasks.map((task) => (
-          <TaskCard
-            key={task.taskId}
-            title={task.title}
-            description={task.description}
-            done={task.isCompleted}
-            onToggle={() => handleToggle(task.taskId, task.isCompleted)}
-            onRemove={() => handleRemove(task.taskId)}
-            onUpdate={(title, description) =>
-              handleUpdate({ taskId: task.taskId, title, description })
-            }
-          />
-        ))
-      ) : (
-        <p className="text-gray-500">
-          Нет задач. Всё завершено или ещё ничего не добавлено.
-        </p>
-      )}
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Мои задачи</h2>
+        <span className="text-sm text-muted-foreground">{tasks.length} задач</span>
+      </div>
+
+      <TaskCreateForm
+        listId={listId}
+        parentTaskId={parentTaskId}
+        onCreated={fetchTasks}
+      />
+
+      <div className="flex flex-col gap-4">
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <TaskCard
+              key={task.taskId}
+              title={task.title}
+              description={task.description}
+              done={task.isCompleted}
+              onToggle={() => handleToggle(task.taskId, task.isCompleted)}
+              onRemove={() => handleRemove(task.taskId)}
+              onUpdate={(title, description) =>
+                handleUpdate({ taskId: task.taskId, title, description })
+              }
+            />
+          ))
+        ) : (
+          <p className="text-center text-muted-foreground">Нет задач. Можно расслабиться... или создать новую.</p>
+        )}
+      </div>
     </div>
   )
 }
