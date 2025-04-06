@@ -49,25 +49,18 @@ namespace TazzkerAPI.Controllers
             return result == null ? BadRequest("During Creation task something went wrong") : Ok(result);
         }
 
-        [HttpPut("/UpdateTask{id}")]
-        public async Task<IActionResult> UpdateTaskItem(Guid id, [FromBody] UpdateTaskItemDto dto)
+        [HttpPatch("/updateTask")]
+        public async Task<IActionResult> UpdateTaskItem([FromBody] UpdateTaskItemDto dto)
         {
-            dto.TaskId = id;
             var result = await _taskItemService.UpdateTaskItemAsync(dto);
-            return result == null ? BadRequest("No such Item!") : Ok(result);
+            return result == null ? NotFound("No such task to update!") : Ok(result);
         }
+
         [HttpDelete("/DeleteTask{id}")]
         public async Task<IActionResult> DeleteTaskItem(Guid id)
         {
             var result = await _taskItemService.DeleteTaskItemAsync(id);
             return result == true ? NoContent() : BadRequest("No such task to delete");
         }
-        [HttpPatch("/softDelete{id}")]
-        public async Task<IActionResult> SoftDeleteTaskItem(Guid id)
-        {
-            var result = await _taskItemService.SoftDeleteTaskItemAsync(id);
-            return result == true? NoContent() : NotFound("No such Task To Soft Delete");
-        }
-
     }
 }

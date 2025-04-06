@@ -9,19 +9,12 @@ namespace Tazzker.Application.Interfaces
 {
     public interface ITaskItemRepository
     {
-        //Task<IEnumerable<TaskItemDto>> GetAllTaskItemsAsync();
-        //Task<TaskItemDto?> GetTaskItemByIdAsync(Guid id);
-        //Task<IEnumerable<TaskItemDto>> GetFilteredTaskItemsAsync(TaskItemFilterDto dto);
-        //Task<TaskItemDto> CreateTaskItemAsync(CreateTaskItemDto dto);
-        //Task<TaskItemDto?> UpdateTaskItemAsync(UpdateTaskItemDto dto);
-        Task<bool> DeleteTaskItemAsync(Guid id);
-        Task<bool> SoftDeleteTaskItemAsync(Guid id);
-       
-        //refactoried
-        Task CreateTaskItemAsync(TaskItem newTaskItem);
         Task<IEnumerable<TaskItem>> GetAllTaskItemsAsync(Guid userId);
-        Task<TaskItem?> GetTaskItemByIdAsync(Guid userId, Guid taskId);
+        Task<TaskItem?> GetTaskItemByIdAsync (Guid taskId, Guid userId);
+        Task CreateTaskItemAsync(TaskItem newTaskItem);
         Task<TaskItem> UpdateTaskItemAsync(TaskItem taskItem);
+        Task<bool> DeleteTaskItemAsync(Guid taskId, Guid userId);
 
+        Task<float> GetMaxOrderInList(Guid listId, Guid userId);
     }
 }

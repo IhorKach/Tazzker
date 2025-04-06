@@ -98,7 +98,7 @@ import Login from "./pages/Login"
 import Settings from "./pages/Settings"
 import Logout from "./pages/Logout"
 import PrivateRoute from "./components/PrivateRoute"
-import TasksPage from "./pages/TasksPage"
+import Tasks from "./pages/Tasks"
 export default function App() {
   return (
     <Routes>
@@ -108,7 +108,7 @@ export default function App() {
         <Route path="login" element={<Login />} />
         <Route path="settings" element={<Settings />} />
         <Route path="/logout" element={<Logout />} />
-        <Route path="tasks" element={ <PrivateRoute><TasksPage /></PrivateRoute> } />
+        <Route path="tasks" element={ <PrivateRoute><Tasks /></PrivateRoute> } />
       </Route>
     </Routes>
   )

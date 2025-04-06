@@ -20,9 +20,26 @@ namespace Tazzker.Application.Services
             _userContext = userContext;
         }
 
+        private TaskItemDto CreateDtoObject(TaskItem task)
+        {
+            return new TaskItemDto
+            {
+                TaskId = task.TaskId,
+                Title = task.Title,
+                Description = task.Description,
+                DueTime = task.DueTime,
+                ReminderAt = task.ReminderAt,
+                UpdatedAt = task.UpdatedAt,
+                IsDeleted = task.IsDeleted,
+                IsCompleted = task.IsCompleted,
+                ListId = task.ListId,
+                ParentTaskId = task.ParentTaskId,
+                Order = task.Order
+            };
+        }
+
         public async Task<TaskItemDto> CreateTaskItemAsync(CreateTaskItemDto dto)
         {
-
             var newTask = new TaskItem
             {
                 Title = dto.Title,
@@ -33,112 +50,30 @@ namespace Tazzker.Application.Services
                 ReminderAt = dto.ReminderAt,
                 UpdatedAt = dto.UpdatedAt,
                 ParentTaskId = dto.ParentTaskId,
-                Order = dto.Order
+                Order = await _taskItemRepository.GetMaxOrderInList(dto.ListId, _userContext.UserId)
             };
             await _taskItemRepository.CreateTaskItemAsync(newTask);
 
-            return new TaskItemDto
-            {
-                ListId = newTask.ListId,
-                TaskId = newTask.TaskId,
-                Title = newTask.Title,
-                Description = newTask.Description,
-                DueTime = newTask.DueTime,
-                ReminderAt = newTask.ReminderAt,
-                UpdatedAt = newTask.UpdatedAt,
-                IsCompleted = newTask.IsCompleted,
-                IsDeleted = newTask.IsDeleted,
-                ParentTaskId = newTask.ParentTaskId,
-                Order = newTask.Order
-            };
+            return CreateDtoObject(newTask);
         }
 
         public async Task<IEnumerable<TaskItemDto>> GetAllTaskItemsAsync()
         {
             var tasks = await _taskItemRepository.GetAllTaskItemsAsync(_userContext.UserId);
 
-            return tasks.Select(t => new TaskItemDto
-            {
-                ListId = t.ListId,
-                TaskId = t.TaskId,
-                Title = t.Title,
-                Description = t.Description,
-                DueTime = t.DueTime,
-                ReminderAt = t.ReminderAt,
-                UpdatedAt = t.UpdatedAt,
-                IsDeleted = t.IsDeleted,
-                IsCompleted = t.IsCompleted,
-                ParentTaskId = t.ParentTaskId,
-                Order = t.Order
-            }).ToList();
+            return tasks.Select(t => CreateDtoObject(t)).ToList();
         }
 
         public async Task<TaskItemDto?> GetTaskItemByIdAsync(Guid taskId)
         {
+            var task = await _taskItemRepository.GetTaskItemByIdAsync(taskId, _userContext.UserId);
 
-            var task = await _taskItemRepository.GetTaskItemByIdAsync(_userContext.UserId, taskId);
-
-
-            return task == null ? null : new TaskItemDto
-            {
-                TaskId = task.TaskId,
-                Title = task.Title,
-                Description = task.Description,
-                DueTime = task.DueTime,
-                ReminderAt = task.ReminderAt,
-                UpdatedAt = task.UpdatedAt,
-                IsDeleted = task.IsDeleted,
-                IsCompleted = task.IsCompleted,
-                ListId = task.ListId,
-                ParentTaskId = task.ParentTaskId,
-                Order = task.Order
-            };
-
+            return task == null ? null : CreateDtoObject(task);
         }
 
         public async Task<bool> DeleteTaskItemAsync(Guid id)
         {
-            return await _taskItemRepository.DeleteTaskItemAsync(id);
-        }
-        public async Task<bool> SoftDeleteTaskItemAsync(Guid id)
-        {
-            return await _taskItemRepository.SoftDeleteTaskItemAsync(id);
-        }
-        public async Task<TaskItemDto?> UpdateTaskItemAsync(UpdateTaskItemDto dto)
-        {
-
-            var task = await _taskItemRepository.GetTaskItemByIdAsync(dto.TaskId, _userContext.UserId);
-            if (task == null) return null;
-
-            
-            task.ListId = dto.ListId;
-            task.ParentTaskId = dto.ParentTaskId;
-            task.Title = dto.Title;
-            task.Description = dto.Description;
-            task.ReminderAt = dto.ReminderAt;
-            task.DueTime = dto.DueTime;
-            task.UpdatedAt = DateTime.UtcNow;
-            task.IsCompleted = dto.IsCompleted;
-            task.IsDeleted = dto.IsDeleted;
-            task.Order = dto.Order;
-
-            task = await _taskItemRepository.UpdateTaskItemAsync(task);
-
-
-            return new TaskItemDto
-            {
-                ListId = task.ListId,
-                TaskId = task.TaskId,
-                Title = task.Title,
-                Description = task.Description,
-                DueTime = task.DueTime,
-                ReminderAt = task.ReminderAt,
-                UpdatedAt = task.UpdatedAt,
-                IsCompleted = task.IsCompleted,
-                IsDeleted = task.IsDeleted,
-                ParentTaskId = task.ParentTaskId,
-                Order = task.Order
-            };
+            return await _taskItemRepository.DeleteTaskItemAsync(id, _userContext.UserId);
         }
         public async Task<IEnumerable<TaskItemDto>> GetFilteredTaskItemsAsync(TaskItemFilterDto dto)
         {
@@ -167,20 +102,39 @@ namespace Tazzker.Application.Services
                    : query.OrderBy(t => t.Order)
                 };
 
-            return query.Select(t => new TaskItemDto
-            {
-                ListId = t.ListId,
-                Description = t.Description,
-                DueTime = t.DueTime,
-                IsCompleted = t.IsCompleted,
-                IsDeleted = t.IsDeleted,
-                ParentTaskId = t.ParentTaskId,
-                ReminderAt = t.ReminderAt,
-                TaskId = t.TaskId,
-                Title = t.Title,
-                UpdatedAt = t.UpdatedAt,
-                Order = t.Order
-            }).ToList();
+            return query.Select(t => CreateDtoObject(t)).ToList();
+        }
+        public async Task<TaskItemDto?> UpdateTaskItemAsync(UpdateTaskItemDto dto)
+        {
+            var task = await _taskItemRepository.GetTaskItemByIdAsync(dto.TaskId, _userContext.UserId);
+            
+            if (task == null) return null;
+
+            if (dto.ListId.HasValue)
+                task.ListId = dto.ListId.Value;
+            if (dto.ParentTaskId.HasValue)
+                task.ParentTaskId = dto.ParentTaskId.Value;
+            if (dto.Title != null)
+                task.Title = dto.Title;
+            if (dto.Description != null)
+                task.Description = dto.Description;
+            if (dto.DueTime.HasValue)
+                task.DueTime = dto.DueTime.Value;
+            if (dto.ReminderAt.HasValue)
+                task.ReminderAt = dto.ReminderAt.Value;
+            if (dto.IsCompleted.HasValue)
+                task.IsCompleted = dto.IsCompleted.Value;
+            if (dto.IsDeleted.HasValue)
+                task.IsDeleted = dto.IsDeleted.Value;
+            if (dto.Order.HasValue)
+                task.Order = dto.Order.Value;
+            if (dto.UpdatedAt.HasValue)
+                task.UpdatedAt = dto.UpdatedAt.Value;
+            else
+                task.UpdatedAt = DateTime.UtcNow;
+
+            await _taskItemRepository.UpdateTaskItemAsync(task);
+            return CreateDtoObject(task);
         }
     }
 }
