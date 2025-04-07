@@ -25,7 +25,7 @@ namespace TazzkerAPI.Controllers
             return Ok(await _taskItemService.GetAllTaskItemsAsync());
         }
 
-        [HttpGet("/GetById{id}")]
+        [HttpGet("/getById/{id}")]
         public async Task<IActionResult> GetTaskById(Guid id)
         {
             var result = await _taskItemService.GetTaskItemByIdAsync(id);
@@ -41,7 +41,7 @@ namespace TazzkerAPI.Controllers
             return Ok(result);
         }
 
-        [HttpPost("/CreateTask")]
+        [HttpPost("/createTask")]
         public async Task<IActionResult> CreateTaskItem([FromBody] CreateTaskItemDto dto)
         {
             var result = await _taskItemService.CreateTaskItemAsync(dto);
@@ -56,7 +56,7 @@ namespace TazzkerAPI.Controllers
             return result == null ? NotFound("No such task to update!") : Ok(result);
         }
 
-        [HttpDelete("/DeleteTask/{id}")]
+        [HttpDelete("/deleteTask/{id}")]
         public async Task<IActionResult> DeleteTaskItem(Guid id)
         {
             var result = await _taskItemService.DeleteTaskItemAsync(id);

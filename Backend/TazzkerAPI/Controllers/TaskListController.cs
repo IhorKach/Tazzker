@@ -18,13 +18,13 @@ namespace TazzkerAPI.Controllers
             _service = service; 
         }
 
-        [HttpGet]
+        [HttpGet("/getAllTaskLists")]
         public async Task<ActionResult<IEnumerable<TaskListDto>>> GetAllTaskLists()
         {
             var taskLists =  await _service.GetAllTaskListsAsync();
             return Ok(taskLists);
         }
-        [HttpGet("{id}")]
+        [HttpGet("/getTaskList/{id}")]
         public async Task<IActionResult> GetTaskListById(Guid id)
         {
             var result =  await _service.GetTaskListByIdAsync(id);
@@ -34,22 +34,21 @@ namespace TazzkerAPI.Controllers
             
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTaskList(Guid id,[FromBody] UpdateTaskListDto dto)
+        [HttpPatch("/updateTaskList")]
+        public async Task<IActionResult> UpdateTaskList([FromBody] UpdateTaskListDto dto)
         {
-            dto.TaskListId = id;
             var result = await _service.UpdateTaskListAsync(dto);
             return result == null ? NotFound() : Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("/createTaskList")]
         public async Task<IActionResult> CreateTaskList([FromBody] CreateTaskListDto dto)
         {
             var result =  await _service.CreateTaskListAsync(dto);
             return Ok(result);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("/deleteTaskList/{id}")]
         public async Task<IActionResult> DeleteTaskList(Guid id)
         {
             var result =  await _service.DeleteTaskListAsync(id);

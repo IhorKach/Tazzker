@@ -1,37 +1,38 @@
-import { Routes, Route } from 'react-router-dom'
-import Layout from '@/components/Layout/Layout'
-import Tasks from '@/pages/Tasks'
-import Login from '@/pages/Login'
-import Logout from '@/pages/Logout'
-import Settings from '@/pages/Settings'
-import Calendar from '@/pages/Calendar'
-import PrivateRoute from '@/components/PrivateRoute'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate
+} from 'react-router-dom'
+import { HomePage } from '@/pages/HomePage'
+import { LoginPage } from '@/pages/LoginPage'
+import { RegisterPage } from '@/pages/RegisterPage'
+import { TaskListOverview } from '@/pages/tasks/TaskListOverview'
+import { TaskListByIdPage } from '@/pages/tasks/TaskListByIdPage'
+import { CalendarPage } from '@/pages/CalendarPage'
+
+const isAuth = () => !!localStorage.getItem('token')
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route path="login" element={<Login />} />
-        <Route path="logout" element={<Logout />} />
-        <Route path="settings" element={<Settings />} />
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route
-          path="calendar"
-          element={
-            <PrivateRoute>
-              <Calendar />
-            </PrivateRoute>
-          }
+          path="/tasks"
+          element={isAuth() ? <TaskListOverview /> : <Navigate to="/login" />}
         />
-
         <Route
-          path="tasks"
-          element={
-            <PrivateRoute>
-              <Tasks />
-            </PrivateRoute>
-          }
+          path="/tasks/:listId"
+          element={isAuth() ? <TaskListByIdPage /> : <Navigate to="/login" />}
         />
-      </Route>
-    </Routes>
+        <Route
+          path="/calendar"
+          element={isAuth() ? <CalendarPage /> : <Navigate to="/login" />}
+        />
+      </Routes>
+    </Router>
   )
 }
