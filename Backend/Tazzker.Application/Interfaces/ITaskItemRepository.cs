@@ -11,10 +11,13 @@ namespace Tazzker.Application.Interfaces
     {
         Task<IEnumerable<TaskItem>> GetAllTaskItemsAsync(Guid userId);
         Task<TaskItem?> GetTaskItemByIdAsync (Guid taskId, Guid userId);
-        Task CreateTaskItemAsync(TaskItem newTaskItem);
+        System.Threading.Tasks.Task CreateTaskItemAsync(TaskItem newTaskItem);
         Task<TaskItem> UpdateTaskItemAsync(TaskItem taskItem);
         Task<bool> DeleteTaskItemAsync(Guid taskId, Guid userId);
 
         Task<float> GetMaxOrderInList(Guid listId, Guid userId);
+
+
+
     }
 }

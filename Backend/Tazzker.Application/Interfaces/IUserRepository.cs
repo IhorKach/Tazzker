@@ -12,6 +12,6 @@ namespace Tazzker.Application.Interfaces
         Task<User?> GetByUsernameAsync(string username);
         Task<User?> GetByEmailAsync(string email);
 
-        Task AddAsync(User user);
+        System.Threading.Tasks.Task AddAsync(User user);
     }
 }

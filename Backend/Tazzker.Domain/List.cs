@@ -2,15 +2,15 @@
 
 namespace Tazzker.Domain
 {
-    public class TaskList
+    public class List
     {
         [Key]
-        public Guid TaskListId { get; set; }
+        public Guid ListId { get; set; }
         public Guid UserId { get; set; }
-        public string Name { get; set; } = null!;
         public string Title { get; set; } = null!;
         public DateTime UpdatedAt { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime? CalendarDay { get; set; }
+        public DateTime? AssignedDay { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

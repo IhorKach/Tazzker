@@ -20,7 +20,7 @@ namespace Tazzker.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddAsync(User user)
+        public async System.Threading.Tasks.Task AddAsync(User user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();

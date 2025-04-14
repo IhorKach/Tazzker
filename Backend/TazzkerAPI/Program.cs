@@ -37,6 +37,19 @@ namespace TazzkerAPI
 
 
 
+            builder.Services.AddScoped<IListRepository, ListRepository>();
+            builder.Services.AddScoped<IListService, ListService>();
+
+            builder.Services.AddScoped<ISublistRepository, SublistRepository>();
+            builder.Services.AddScoped<ISublistService, SublistService>();
+
+            builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+            builder.Services.AddScoped<ITaskService, TaskService>();
+
+            builder.Services.AddScoped<INoteRepository, NoteRepository>();
+            builder.Services.AddScoped<INoteService, NoteService>();
+
+
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<IUserContext, UserContext>();
 

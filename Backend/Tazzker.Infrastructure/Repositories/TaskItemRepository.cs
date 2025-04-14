@@ -22,7 +22,7 @@ namespace Tazzker.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task CreateTaskItemAsync(TaskItem newTaskItem)
+        public async System.Threading.Tasks.Task CreateTaskItemAsync(TaskItem newTaskItem)
         {
             await _context.AddAsync(newTaskItem);
             await _context.SaveChangesAsync();
