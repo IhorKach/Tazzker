@@ -1,4 +1,5 @@
-﻿using Tazzker.Application.DTOs;
+﻿using System.Collections.Generic;
+using Tazzker.Application.DTOs;
 using Tazzker.Application.Interfaces;
 using Tazzker.Domain;
 
@@ -56,6 +57,7 @@ namespace Tazzker.Application.Services
             {
                 foreach (var list in lists)
                 {
+                    Console.WriteLine($"ListId: {list.ListId}, UserId: {_userContext.UserId}");
                     var l = await _listRepository.GetListByIdAsync(list.ListId, _userContext.UserId);
 
                     if (l != null)
@@ -65,8 +67,9 @@ namespace Tazzker.Application.Services
                 }
                 return true;
             }
-            catch
+            catch (Exception ex) 
             {
+                Console.WriteLine(ex.Message );
                 return false;
             }
         }

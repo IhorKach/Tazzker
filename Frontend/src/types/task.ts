@@ -1,39 +1,15 @@
-export interface Task {
-    taskId: string;
-    listId: string;
-    parentTaskId?: string;
-    title?: string;
-    description?: string;
-    updatedAt: string;
-    reminderAt?: string;
-    dueTime?: string;
-    isCompleted: boolean;
-    isDeleted: boolean;
-    order: number;
-  }
-  
-  export interface CreateTaskDto {
-    listId: string;
-    parentTaskId?: string;
-    title?: string;
-    description?: string;
-    updatedAt: string;
-    reminderAt?: string;
-    dueTime?: string;
-    order: number;
-  }
-  
-  export interface UpdateTaskDto {
-    taskId: string;
-    listId?: string;
-    parentTaskId?: string;
-    title?: string;
-    description?: string;
-    updatedAt?: string;
-    reminderAt?: string;
-    dueTime?: string;
-    isCompleted?: boolean;
-    isDeleted?: boolean;
-    order?: number;
-  }
-  
+export interface TaskDto {
+  taskId: string;
+  sublistId: string;
+  order: number;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+  isDeleted: boolean;
+  updatedAt: string;
+  reminderAt?: string;
+  dueTime?: string;
+}
+export interface Task extends TaskDto {
+  isSynced?: boolean;
+}

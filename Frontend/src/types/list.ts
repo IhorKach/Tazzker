@@ -1,15 +1,11 @@
-export interface TaskList {
-    taskListId: string;
-    name: string;
-    createdAt: string;
-  }
-  
-  export interface CreateTaskListDto {
-    name: string;
-  }
-  
-  export interface UpdateTaskListDto {
-    taskListId: string;
-    name: string;
-  }
-  
+export interface ListDto {
+  listId: string;
+  title: string;
+  updatedAt: string;
+  createdAt: string;
+  assignedDay?: string;
+  isDeleted: boolean;
+}
+export interface List extends ListDto {
+  isSynced?: boolean;
+}

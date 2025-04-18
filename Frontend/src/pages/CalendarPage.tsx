@@ -1,12 +1,8 @@
-// --- src/pages/CalendarPage.tsx ---
-import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
-import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
-
-export function CalendarPage() {
+export default function CalendarPage() {
   return (
-    <LayoutWrapper>
-      <h2 className="text-2xl font-semibold mb-6">Календарь</h2>
-      <CalendarMonthView />
-    </LayoutWrapper>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold text-center mb-4">Календарь</h1>
+      <p className="text-center text-gray-500">Тут будет календарь с задачами.</p>
+    </div>
   );
 }

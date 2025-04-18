@@ -18,7 +18,7 @@ namespace Tazzker.Infrastructure.Repositories
         }
         public async Task<Sublist?> GetSublistByIdAsync(Guid sublistId, Guid userId)
         {
-            return await _context.Sublists.FirstOrDefaultAsync(s => s.SublistId == sublistId && s.UserId == userId);
+            return await _context.Sublists.AsNoTracking().FirstOrDefaultAsync(s => s.SublistId == sublistId && s.UserId == userId);
         }
 
         public async System.Threading.Tasks.Task CreateSublistAsync(Sublist newSublist)

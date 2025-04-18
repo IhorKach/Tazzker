@@ -19,7 +19,7 @@ namespace Tazzker.Infrastructure.Repositories
 
         public async Task<Note?> GetNoteByIdAsync(Guid noteId, Guid userId)
         {
-            return await _context.Notes.FirstOrDefaultAsync(n => n.NoteId == noteId && n.UserId == userId);
+            return await _context.Notes.AsNoTracking().FirstOrDefaultAsync(n => n.NoteId == noteId && n.UserId == userId);
         }
 
         public async System.Threading.Tasks.Task CreateNoteAsync(Note newNote)

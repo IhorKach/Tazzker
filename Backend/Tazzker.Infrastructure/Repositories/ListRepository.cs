@@ -17,7 +17,7 @@ namespace Tazzker.Infrastructure.Repositories
         }
         public async Task<List?> GetListByIdAsync(Guid listId, Guid userId)
         {
-            return await _context.Lists.FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userId);
+            return await _context.Lists.AsNoTracking().FirstOrDefaultAsync(l => l.ListId == listId && l.UserId == userId);
         }
         public async System.Threading.Tasks.Task CreateListAsync(List newList)
         {
