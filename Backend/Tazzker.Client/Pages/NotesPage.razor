@@ -1,0 +1,79 @@
+﻿@page "/notes"
+@using Tazzker.Client.Data.Models
+@using Tazzker.Client.Interfaces
+@inject ILocalDb<NoteModel> NoteDb
+@inject NavigationManager Nav
+
+
+<h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20">
+	📒 Заметки
+</h2>
+
+<!-- Кнопка добавления сверху -->
+<div class="flex justify-between items-center mb-6 sticky top-16 z-10 bg-yellow-50 pb-2">
+	<button @onclick="AddNote"
+			class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded shadow">
+		➕ Новая заметка
+	</button>
+</div>
+
+
+@if (notes.Count == 0)
+{
+	<div class="text-center text-gray-400 italic mt-8">Нет заметок. Добавьте первую заметку 🐝</div>
+}
+else
+{
+	<div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+		@foreach (var note in notes)
+		{
+			<div class="relative group">
+				<!-- ✕ кнопка -->
+				<button @onclick="(e => DeleteNote(note.Id))"
+				@onclick:stopPropagation
+						class="absolute top-2 right-2 text-yellow-700 hover:text-red-500 font-bold text-xl opacity-0 group-hover:opacity-100 transition z-10"
+						title="Удалить заметку">
+					✕
+				</button>
+
+				<!-- Карточка -->
+				<div @onclick="@(() => Nav.NavigateTo($"/note/{note.Id}"))"
+					 class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-xl shadow cursor-pointer transition-all h-full">
+					<div class="font-semibold text-lg mb-1 text-gray-800 truncate">@note.Title</div>
+					<div class="text-sm text-gray-600 line-clamp-3">@note.Body</div>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+@code {
+	List<NoteModel> notes = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		notes = await NoteDb.GetAllAsync();
+	}
+
+	async Task AddNote()
+	{
+		var note = new NoteModel
+			{
+				Id = Guid.NewGuid().ToString(),
+				Title = "Новая заметка",
+				Body = "",
+				CreatedAt = DateTime.UtcNow,
+				UpdatedAt = DateTime.UtcNow
+			};
+
+		await NoteDb.AddOrUpdateAsync(note);
+		notes = await NoteDb.GetAllAsync();
+		Nav.NavigateTo($"/note/{note.Id}");
+	}
+
+	async Task DeleteNote(string id)
+	{
+		await NoteDb.SoftDeleteAsync(id);
+		notes = await NoteDb.GetAllAsync();
+	}
+}

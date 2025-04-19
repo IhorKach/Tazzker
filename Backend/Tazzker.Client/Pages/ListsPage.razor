@@ -1,0 +1,147 @@
+﻿@* @using Tazzker.Client.Data.Models;
+@using Tazzker.Client.Data.LocalDb;
+@using Tazzker.Client.Interfaces;
+@page "/lists"
+
+@inject ILocalDb<ListModel> ListDb
+@inject NavigationManager Nav
+
+<h2 class="text-xl font-bold mb-4">📋 Списки</h2>
+
+<input type="text" @bind="newTitle" placeholder="Новый список..." class="border p-2 rounded mr-2" />
+<button @onclick="AddList" class="bg-green-500 text-white px-3 py-2 rounded">Добавить</button>
+
+<ul class="mt-6 space-y-2">
+    @foreach (var list in lists)
+    {
+        var url = $"/list/{list.Id}";
+        <li class="bg-gray-100 p-2 rounded cursor-pointer hover:bg-gray-200"
+            @onclick="@(() => Nav.NavigateTo(url))">
+            <span class="font-semibold">@list.Title</span>
+        </li>
+    }
+</ul>
+
+@code {
+    private List<ListModel> lists = new();
+    private string newTitle = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+
+    async Task AddList()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle))
+            return;
+
+        var list = new ListModel
+        {
+            Id = Guid.NewGuid().ToString(),
+            Title = newTitle.Trim(),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false,
+            IsSynced = false
+        };
+
+        await ListDb.AddOrUpdateAsync(list);
+        newTitle = "";
+        await Refresh();
+    }
+
+    async Task SaveList(ListModel list)
+    {
+        await ListDb.AddOrUpdateAsync(list);
+        await Refresh();
+    }
+
+    async Task DeleteList(string id)
+    {
+        await ListDb.SoftDeleteAsync(id);
+        await Refresh();
+    }
+
+    async Task Refresh()
+    {
+        lists = await ListDb.GetAllAsync();
+    }
+}
+ *@
+
+ @page "/lists"
+@using Tazzker.Client.Data.Models
+@using Tazzker.Client.Interfaces
+@inject ILocalDb<ListModel> ListDb
+@inject ILocalDb<TaskModel> TaskDb
+@inject NavigationManager Nav
+
+<h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20">
+    📂 Списки
+</h2>
+
+<!-- Кнопка добавления сверху -->
+<div class="flex justify-between items-center mb-6 sticky top-16 z-10 bg-yellow-50 pb-2">
+    <button @onclick="AddList"
+            class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded shadow">
+        ➕ Новый список
+    </button>
+</div>
+
+@if (lists.Count == 0)
+{
+    <div class="text-center text-gray-400 italic mt-8">У вас пока нет списков 🐝</div>
+}
+else
+{
+    <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+        @foreach (var list in lists)
+        {
+            <div @onclick="@(() => Nav.NavigateTo($"/list/{list.Id}"))"
+                 class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-xl shadow cursor-pointer transition-all group">
+                <div class="text-lg font-semibold text-gray-800 truncate mb-1">@list.Title</div>
+                <div class="text-sm text-gray-600">
+                    🕒 @list.UpdatedAt.ToLocalTime().ToString("g")
+                </div>
+                <div class="text-sm text-gray-500">
+                    ✅ Задач: @GetTaskCount(list.Id)
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- FAB-кнопка на мобилках -->
+<button @onclick="AddList"
+        class="sm:hidden fixed bottom-4 right-4 bg-yellow-400 hover:bg-yellow-500 text-white text-xl rounded-full w-14 h-14 shadow-lg flex items-center justify-center z-50">
+    +
+</button>
+
+@code {
+    List<ListModel> lists = new();
+    List<TaskModel> tasks = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        lists = await ListDb.GetAllAsync();
+        tasks = await TaskDb.GetAllAsync();
+    }
+
+    int GetTaskCount(string listId) =>
+        tasks.Count(t => t.SublistId != null && lists.Any(l => l.Id == listId && t.SublistId.StartsWith(listId)));
+
+    async Task AddList()
+    {
+        var list = new ListModel
+        {
+            Id = Guid.NewGuid().ToString(),
+            Title = "Новый список",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        await ListDb.AddOrUpdateAsync(list);
+        lists = await ListDb.GetAllAsync();
+    }
+}

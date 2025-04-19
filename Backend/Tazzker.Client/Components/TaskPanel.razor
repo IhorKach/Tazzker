@@ -1,0 +1,33 @@
+﻿@using Tazzker.Client.Data.Models
+
+@if (Task != null)
+{
+	<div class="fixed inset-0 bg-black bg-opacity-30 z-40" @onclick="Close">
+
+		<div class="absolute right-0 top-0 bottom-0 w-full sm:w-[400px] bg-white border-l p-4 shadow-xl z-50"
+		@onclick:stopPropagation>
+			<div class="flex justify-between items-center mb-4">
+				<h2 class="text-lg font-bold">Задача</h2>
+				<button @onclick="Close" class="text-gray-500 hover:text-black">✕</button>
+			</div>
+
+			<input class="text-xl font-semibold w-full mb-3 border p-2 rounded"
+				   @bind="Task.Title"
+				   @onblur="() => OnSave.InvokeAsync(Task)" />
+
+			<textarea class="w-full h-60 border p-2 rounded resize-none"
+					  @bind="Task.Description"
+					  @onblur="() => OnSave.InvokeAsync(Task)" />
+
+			<div class="mt-4 text-sm text-gray-400">
+				Последнее обновление: @Task.UpdatedAt.ToLocalTime().ToString("g")
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public TaskModel? Task { get; set; }
+	[Parameter] public EventCallback Close { get; set; }
+	[Parameter] public EventCallback<TaskModel> OnSave { get; set; }
+}

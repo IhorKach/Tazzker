@@ -1,0 +1,95 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tazzker.Client</title>
+    <base href="/" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="Tazzker.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <link href="css/output.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="loader" class="min-h-screen flex items-center justify-center bg-yellow-50 text-yellow-700">
+        <div class="flex flex-col items-center space-y-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent"></div>
+            <div class="text-sm font-semibold tracking-wide">Загрузка улья...</div>
+        </div>
+    </div>
+    <div id="app"></div>
+
+
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script src="js/indexedDb.js"></script>
+</body>
+
+</html>-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tazzker.Client</title>
+    <base href="/" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="Tazzker.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <link href="css/output.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- 🐝 Лоадер -->
+    <div id="loader" class="min-h-screen flex items-center justify-center bg-yellow-100 text-yellow-800 transition-opacity duration-300">
+        <div class="text-xl font-semibold animate-pulse">🐝 Пчёлки заняты загрузкой...</div>
+    </div>
+
+    <!-- 🧠 Основное Blazor-приложение -->
+    <div id="app"></div>
+
+    <!-- 🧯 Блок ошибок -->
+    <div id="blazor-error-ui" class="hidden">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <!-- 🚀 Скрипты -->
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="js/indexedDb.js"></script>
+
+    <!-- 💡 Автоскрытие лоадера, когда Blazor подгрузит контент -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const observer = new MutationObserver(() => {
+                const app = document.getElementById('app');
+                if (app && app.childNodes.length > 0) {
+                    const loader = document.getElementById('loader');
+                    if (loader) {
+                        loader.style.opacity = '0';
+                        setTimeout(() => loader.remove(), 300); // плавно удаляем
+                    }
+                    observer.disconnect();
+                }
+            });
+
+            observer.observe(document.getElementById('app'), { childList: true });
+        });
+    </script>
+</body>
+
+</html>

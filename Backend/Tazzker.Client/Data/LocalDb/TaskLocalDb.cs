@@ -1,0 +1,49 @@
+﻿using Tazzker.Client.Interfaces;
+using Tazzker.Client.Services;
+using Tazzker.Client.Data.Models;
+
+namespace Tazzker.Client.Data.LocalDb
+{
+
+    public class TaskLocalDb : ILocalDb<TaskModel>
+    {
+        private readonly IndexedDbBridge _db;
+        private const string StoreName = "Tasks";
+
+        public TaskLocalDb(IndexedDbBridge db)
+        {
+            _db = db;
+        }
+
+        public async Task<List<TaskModel>> GetAllAsync()
+        {
+            var all = await _db.GetAllAsync<TaskModel>(StoreName);
+            return all.Where(x => !x.IsDeleted).OrderBy(x => x.Order).ToList();
+        }
+
+        public async Task<TaskModel?> GetByIdAsync(string id)
+        {
+            var all = await GetAllAsync();
+            return all.FirstOrDefault(x => x.Id == id);
+        }
+
+        public async Task AddOrUpdateAsync(TaskModel item)
+        {
+            item.UpdatedAt = DateTime.UtcNow;
+            await _db.AddAsync(StoreName, item);
+        }
+
+        public async Task SoftDeleteAsync(string id)
+        {
+            var task = await GetByIdAsync(id);
+            if (task is null) return;
+
+            task.IsDeleted = true;
+            task.IsSynced = false;
+            task.UpdatedAt = DateTime.UtcNow;
+
+            await AddOrUpdateAsync(task);
+        }
+    }
+
+}

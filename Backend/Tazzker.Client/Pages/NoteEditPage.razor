@@ -1,0 +1,59 @@
+﻿@layout NoteLayout
+@using Tazzker.Client.Data.LocalDb;
+@using Tazzker.Client.Data.Models;
+@using Tazzker.Client.Interfaces;
+
+@page "/note/{Id}"
+
+@inject NavigationManager Nav
+@inject ILocalDb<NoteModel> NoteDb
+
+<div class="absolute inset-0 flex flex-col">
+    <!-- Навигация -->
+    <div class="p-4 bg-white border-b flex justify-between items-center">
+        <button @onclick="GoBack"
+                class="text-yellow-600 hover:text-yellow-800 inline-flex items-center gap-1">
+            ← Назад
+        </button>
+        <div class="text-sm text-gray-400 italic">
+            Последнее обновление: @note.UpdatedAt.ToLocalTime().ToString("g")
+        </div>
+    </div>
+
+    <!-- Контент -->
+    <div class="flex-1 overflow-auto p-6 bg-yellow-50">
+        <input @bind="note.Title"
+               @onblur="Save"
+               class="text-4xl font-extrabold w-full mb-6 bg-yellow-100 border-2 border-yellow-400 rounded p-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow" />
+
+
+        <textarea @bind="note.Body"
+                  @onblur="Save"
+                  class="w-full h-full resize-none p-4 border border-yellow-200 rounded bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
+        </textarea>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = "";
+
+    private NoteModel note = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var found = await NoteDb.GetByIdAsync(Id);
+        note = found ?? new NoteModel { Id = Id, Title = "", Body = "" };
+    }
+
+             void GoBack()
+     {
+         Nav.NavigateTo("/notes");
+     }
+
+    async Task Save()
+    {
+        note.UpdatedAt = DateTime.UtcNow;
+        await NoteDb.AddOrUpdateAsync(note);
+    }
+}
