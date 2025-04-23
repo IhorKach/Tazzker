@@ -20,10 +20,10 @@ namespace Tazzker.Client.Data.LocalDb
 			return all.Where(x => !x.IsDeleted).OrderBy(x => x.Order).ToList();
 		}
 
-		public async Task<SublistModel?> GetByIdAsync(string id)
+		public async Task<SublistModel?> GetByIdAsync(Guid id)
 		{
 			var all = await GetAllAsync();
-			return all.FirstOrDefault(x => x.Id == id);
+			return all.FirstOrDefault(x => x.SublistId == id);
 		}
 
 		public async Task AddOrUpdateAsync(SublistModel item)
@@ -32,7 +32,7 @@ namespace Tazzker.Client.Data.LocalDb
 			await _db.AddAsync(StoreName, item);
 		}
 
-		public async Task SoftDeleteAsync(string id)
+		public async Task SoftDeleteAsync(Guid id)
 		{
 			var sublist = await GetByIdAsync(id);
 			if (sublist is null) return;

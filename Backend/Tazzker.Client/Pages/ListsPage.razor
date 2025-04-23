@@ -70,12 +70,17 @@
 }
  *@
 
- @page "/lists"
+@page "/lists"
 @using Tazzker.Client.Data.Models
 @using Tazzker.Client.Interfaces
+@using Tazzker.Client.Services
 @inject ILocalDb<ListModel> ListDb
 @inject ILocalDb<TaskModel> TaskDb
+@inject ILocalDb<SublistModel> SublistDb
 @inject NavigationManager Nav
+
+
+
 
 <h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20">
     📂 Списки
@@ -86,6 +91,14 @@
     <button @onclick="AddList"
             class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded shadow">
         ➕ Новый список
+    </button>
+    <button @onclick="SyncAll"
+            class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded shadow">
+        🔄 Синхронизировать
+    </button>
+    <button @onclick="SyncFromServer"
+            class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded shadow">
+        🔄 Обновить из сервера
     </button>
 </div>
 
@@ -98,14 +111,14 @@ else
     <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         @foreach (var list in lists)
         {
-            <div @onclick="@(() => Nav.NavigateTo($"/list/{list.Id}"))"
+            <div @onclick="@(() => Nav.NavigateTo($"/list/{list.ListId}"))"
                  class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-xl shadow cursor-pointer transition-all group">
                 <div class="text-lg font-semibold text-gray-800 truncate mb-1">@list.Title</div>
                 <div class="text-sm text-gray-600">
                     🕒 @list.UpdatedAt.ToLocalTime().ToString("g")
                 </div>
                 <div class="text-sm text-gray-500">
-                    ✅ Задач: @GetTaskCount(list.Id)
+                    ✅ Задач: @GetTaskCount(list.ListId)
                 </div>
             </div>
         }
@@ -121,27 +134,55 @@ else
 @code {
     List<ListModel> lists = new();
     List<TaskModel> tasks = new();
+    List<SublistModel> sublists = new();
+    Dictionary<Guid, List<Guid>> sublistsByList = new();
 
     protected override async Task OnInitializedAsync()
     {
         lists = await ListDb.GetAllAsync();
         tasks = await TaskDb.GetAllAsync();
+        sublists = await SublistDb.GetAllAsync();
+
+        sublistsByList = sublists
+            .GroupBy(s => s.ListId)
+            .ToDictionary(g => g.Key, g => g.Select(s => s.SublistId).ToList());
     }
 
-    int GetTaskCount(string listId) =>
-        tasks.Count(t => t.SublistId != null && lists.Any(l => l.Id == listId && t.SublistId.StartsWith(listId)));
+    int GetTaskCount(Guid listId)
+    {
+        if (!sublistsByList.TryGetValue(listId, out var sublistIds))
+            return 0;
+
+        return tasks.Count(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value));
+    }
 
     async Task AddList()
     {
         var list = new ListModel
-        {
-            Id = Guid.NewGuid().ToString(),
-            Title = "Новый список",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            {
+                ListId = Guid.NewGuid(),
+                Title = "Новый список",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
         await ListDb.AddOrUpdateAsync(list);
         lists = await ListDb.GetAllAsync();
     }
+
+    [Inject] private SyncService Sync { get; set; }
+
+    private async Task SyncAll()
+    {
+        await Sync.SyncAllAsync();
+        Console.WriteLine("Синхронизация завершена.");
+    }
+
+    private async Task SyncFromServer()
+    {
+        await Sync.PullAllAsync();
+        // При желании — перезагрузи текущую страницу:
+        Nav.NavigateTo(Nav.Uri, forceLoad: true);
+    }
+
 }

@@ -1,13 +1,16 @@
-﻿	using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Tazzker.Client.Interfaces;
 
 namespace Tazzker.Client.Data.Models
 {
-	public class TaskModel
-	{
+    public class TaskModel : ISyncable
+    {
         [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        [JsonPropertyName("id")]
+        public Guid TaskId { get; set; } = Guid.NewGuid();
 
-        public string SublistId { get; set; } = "";
+        public Guid? SublistId { get; set; }
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
 

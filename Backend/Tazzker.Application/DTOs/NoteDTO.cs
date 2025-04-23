@@ -1,7 +1,10 @@
-﻿namespace Tazzker.Application.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace Tazzker.Application.DTOs
 {
     public class NoteDTO
     {
+        [JsonPropertyName("id")]
         public Guid NoteId { get; set; }
         public string Title { get; set; } = null!;
         public string Body { get; set; } = null!;

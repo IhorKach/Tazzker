@@ -1,26 +1,54 @@
-﻿@using Tazzker.Client.Data.Models
+﻿ @using Tazzker.Client.Data.Models
+@inject IJSRuntime JS
 
 @if (Task != null)
 {
-	<div class="fixed inset-0 bg-black bg-opacity-30 z-40" @onclick="Close">
-
+	<div class="fixed inset-0 bg-black bg-opacity-30 z-40" @onclick="() => CloseAndSave()">
 		<div class="absolute right-0 top-0 bottom-0 w-full sm:w-[400px] bg-white border-l p-4 shadow-xl z-50"
 		@onclick:stopPropagation>
+
 			<div class="flex justify-between items-center mb-4">
 				<h2 class="text-lg font-bold">Задача</h2>
-				<button @onclick="Close" class="text-gray-500 hover:text-black">✕</button>
+				<button @onclick="() => CloseAndSave()" class="text-gray-500 hover:text-black">✕</button>
 			</div>
 
-			<input class="text-xl font-semibold w-full mb-3 border p-2 rounded"
+			<input @ref="titleInput"
+				   class="text-xl font-semibold w-full mb-3 border p-2 rounded"
 				   @bind="Task.Title"
-				   @onblur="() => OnSave.InvokeAsync(Task)" />
+				   @onblur="Save" />
 
 			<textarea class="w-full h-60 border p-2 rounded resize-none"
 					  @bind="Task.Description"
-					  @onblur="() => OnSave.InvokeAsync(Task)" />
+					  @onblur="Save" />
+
+			<div class="mt-4 space-y-2">
+				<label class="block text-sm text-gray-600">Дата выполнения</label>
+				<InputDate @bind-Value="Task.DueTime"
+						   class="border p-2 rounded w-full"
+						   @onchange="Save" />
+
+				@if (Task.DueTime != null)
+				{
+					<button @onclick="ClearDueTime"
+							class="text-sm text-red-500 hover:underline">
+						❌ Очистить дату
+					</button>
+				}
+			</div>
 
 			<div class="mt-4 text-sm text-gray-400">
 				Последнее обновление: @Task.UpdatedAt.ToLocalTime().ToString("g")
+			</div>
+
+			<div class="mt-6 flex justify-between">
+				<button @onclick="() => OnDelete.InvokeAsync(Task.TaskId)"
+						class="text-red-500 hover:text-red-700">
+					🗑 Удалить
+				</button>
+
+				<button class="text-yellow-700 hover:text-yellow-900" disabled>
+					☰ Ещё (в разработке)
+				</button>
 			</div>
 		</div>
 	</div>
@@ -30,4 +58,43 @@
 	[Parameter] public TaskModel? Task { get; set; }
 	[Parameter] public EventCallback Close { get; set; }
 	[Parameter] public EventCallback<TaskModel> OnSave { get; set; }
+	[Parameter] public EventCallback<Guid> OnDelete { get; set; }
+	[Parameter] public bool CloseOnSave { get; set; } = true;
+
+	private ElementReference titleInput;
+	private bool wasVisible;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (Task != null && !wasVisible)
+		{
+			wasVisible = true;
+			await titleInput.FocusAsync();
+			await JS.InvokeVoidAsync("selectToEnd", titleInput);
+		}
+		else if (Task == null)
+		{
+			wasVisible = false;
+		}
+	}
+
+	private async Task Save()
+	{
+		if (Task == null) return;
+		Task.UpdatedAt = DateTime.UtcNow;
+		await OnSave.InvokeAsync(Task);
+	}
+
+	private async Task ClearDueTime()
+	{
+		if (Task == null) return;
+		Task.DueTime = null;
+		await Save();
+	}
+
+	private async Task CloseAndSave()
+	{
+		await Save();
+		await Close.InvokeAsync();
+	}
 }

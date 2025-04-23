@@ -1,0 +1,100 @@
+﻿@page "/auth"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+<h2 class="text-2xl font-bold mb-6 text-yellow-800 text-center">🐝 Добро пожаловать в Tazzker</h2>
+
+<!-- Переключатели Войти / Зарегистрироваться -->
+<div class="flex justify-center space-x-4">
+    <button @onclick="() => isLogin = true"
+            class=@($"px-4 py-2 rounded font-semibold transition-all {(isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
+        Войти
+    </button>
+    <button @onclick="() => isLogin = false"
+            class=@($"px-4 py-2 rounded font-semibold transition-all {(!isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
+        Зарегистрироваться
+    </button>
+</div>
+
+<!-- Форма -->
+<div class="mt-6 max-w-sm mx-auto bg-white p-6 rounded shadow space-y-4">
+    <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Email" />
+    <InputText @bind-Value="Password" class="w-full border p-2 rounded" placeholder="Пароль" type="password" />
+
+    @if (!isLogin)
+    {
+        <InputText @bind-Value="ConfirmPassword" class="w-full border p-2 rounded" placeholder="Повторите пароль" type="password" />
+    }
+
+    <button @onclick="Submit"
+            class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded">
+        @(isLogin ? "Войти" : "Зарегистрироваться")
+    </button>
+
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <div class="text-red-600 text-sm text-center">@Error</div>
+    }
+</div>
+
+@code {
+    private bool isLogin = true;
+    private string Username = "";
+    private string Password = "";
+    private string ConfirmPassword = "";
+    private string Error = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Nav.NavigateTo("/lists");
+        }
+    }
+
+
+    private async Task Submit()
+    {
+        Error = "";
+
+        if (!isLogin && Password != ConfirmPassword)
+        {
+            Error = "Пароли не совпадают.";
+            return;
+        }
+
+        var payload = new
+        {
+            Username,
+            Password
+        };
+
+        var url = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync(url, payload);
+            if (response.IsSuccessStatusCode)
+            {
+                var token = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+
+                // todo: сохранить токен, редирект
+                Nav.NavigateTo("/lists");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Error = error;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Error = "Ошибка соединения с сервером.";
+        }
+    }
+}

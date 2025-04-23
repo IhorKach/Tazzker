@@ -3,7 +3,7 @@
 @using Tazzker.Client.Data.Models;
 @using Tazzker.Client.Interfaces;
 
-@page "/note/{Id}"
+@page "/note/{Id:guid}"
 
 @inject NavigationManager Nav
 @inject ILocalDb<NoteModel> NoteDb
@@ -36,14 +36,14 @@
 
 @code {
     [Parameter]
-    public string Id { get; set; } = "";
+    public Guid Id { get; set; }
 
     private NoteModel note = new();
 
     protected override async Task OnInitializedAsync()
     {
         var found = await NoteDb.GetByIdAsync(Id);
-        note = found ?? new NoteModel { Id = Id, Title = "", Body = "" };
+        note = found ?? new NoteModel { NoteId = Id, Title = "", Body = "" };
     }
 
              void GoBack()

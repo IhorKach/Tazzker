@@ -115,7 +115,7 @@ namespace TazzkerAPI
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:5173", "https://localhost:5173") // обе версии
+                        .WithOrigins("http://localhost:7212", "https://localhost:7212") // обе версии
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });

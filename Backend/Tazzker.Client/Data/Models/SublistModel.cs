@@ -1,13 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Tazzker.Client.Interfaces;
 
 namespace Tazzker.Client.Data.Models
 {
-	public class SublistModel
-	{
+	public class SublistModel : ISyncable
+    {
 		[Key]
-		public string Id { get; set; } = Guid.NewGuid().ToString();
+        [JsonPropertyName("id")]
+        public Guid SublistId { get; set; } = Guid.NewGuid();
 
-		public string ListId { get; set; } = ""; // ссылка на родительский список
+		public Guid ListId { get; set; }
 		public string Title { get; set; } = "";
 
 		public float Order { get; set; } = 0f;

@@ -1,0 +1,100 @@
+﻿ @page "/inbox"
+@using Tazzker.Client.Components
+@using Tazzker.Client.Data.Models
+@using Tazzker.Client.Interfaces
+@inject ILocalDb<TaskModel> TaskDb
+
+<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow flex justify-between items-center">
+	<span>📥 Инбокс</span>
+</h2>
+
+<!-- Кнопка добавления задачи -->
+<div class="px-4 mb-4">
+	<button @onclick="AddTask"
+			class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded shadow">
+		➕ Добавить задачу
+	</button>
+</div>
+
+@if (tasks.Count == 0)
+{
+	<div class="px-4 text-gray-500 italic">Нет задач в инбоксе 🐝</div>
+}
+else
+{
+	<div class="px-4 space-y-3 pb-8">
+		@foreach (var task in tasks)
+		{
+			<div class="flex items-center bg-yellow-50 rounded p-3 shadow cursor-pointer"
+				 @onclick="() => selectedTask = task">
+				<input type="checkbox"
+					   @bind="task.IsCompleted"
+					   @bind:after="() => SaveTask(task)"
+					   class="mr-2" />
+				<span class="flex-grow">@task.Title</span>
+				<button @onclick="(e => DeleteTask(task.TaskId))"
+				@onclick:stopPropagation
+						class="ml-2 text-red-500 hover:text-red-700">
+					✕
+				</button>
+			</div>
+		}
+	</div>
+}
+
+<TaskPanel Task="selectedTask"
+		   OnSave="SaveTask"
+		   OnDelete="DeleteTask"
+		   Close="@(() => selectedTask = null)"
+		   CloseOnSave="false" />
+
+@code {
+	List<TaskModel> tasks = new();
+	TaskModel? selectedTask;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var all = await TaskDb.GetAllAsync();
+		tasks = all.Where(t => t.SublistId == null && !t.IsDeleted)
+							.OrderByDescending(t => t.UpdatedAt)
+							.ToList();
+	}
+
+	async Task AddTask()
+	{
+		var task = new TaskModel
+			{
+				Title = "Новая задача",
+				Description = "",
+				Order = tasks.Count + 1
+			};
+
+		await TaskDb.AddOrUpdateAsync(task);
+		tasks.Insert(0, task);
+	}
+
+	async Task SaveTask(TaskModel task)
+	{
+		await TaskDb.AddOrUpdateAsync(task);
+		task.UpdatedAt = DateTime.UtcNow;
+
+		// Получаем заново обновлённый список
+		var updated = await TaskDb.GetAllAsync();
+		tasks = updated
+			.Where(t => t.SublistId == null && !t.IsDeleted)
+			.OrderByDescending(t => t.UpdatedAt)
+			.ToList();
+
+		// Обновляем ссылку на выбранную задачу (иначе TaskPanel видит старую)
+		selectedTask = tasks.FirstOrDefault(t => t.TaskId == task.TaskId);
+	}
+
+
+
+	async Task DeleteTask(Guid id)
+	{
+		await TaskDb.SoftDeleteAsync(id);
+		tasks = tasks.Where(t => t.TaskId != id).ToList();
+		selectedTask = null;
+	}
+}

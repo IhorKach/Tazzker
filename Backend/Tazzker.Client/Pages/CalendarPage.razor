@@ -1,0 +1,147 @@
+﻿ @page "/calendar"
+@using Tazzker.Client.Data.Models
+@using Tazzker.Client.Interfaces
+@using System.Globalization
+@inject ILocalDb<TaskModel> TaskDb
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
+	📅 Календарь
+</h2>
+
+<div class="px-4 py-6 space-y-4">
+	<!-- Навигация по месяцам и годам -->
+	<div class="flex items-center justify-between">
+		<button @onclick="() => ChangeMonth(-1)" class="text-yellow-600 hover:text-yellow-800 text-lg">←</button>
+
+		<div class="flex items-center space-x-2">
+			<select value="@selectedMonth" @onchange="OnMonthChanged" class="bg-yellow-50 border rounded px-2 py-1">
+				@for (int m = 1; m <= 12; m++)
+				{
+					<option value="@m">@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+				}
+			</select>
+
+			<select value="@selectedYear" @onchange="OnYearChanged" class="bg-yellow-50 border rounded px-2 py-1">
+				@for (int y = currentYear - 5; y <= currentYear + 5; y++)
+				{
+					<option value="@y">@y</option>
+				}
+			</select>
+		</div>
+
+		<button @onclick="() => ChangeMonth(1)" class="text-yellow-600 hover:text-yellow-800 text-lg">→</button>
+	</div>
+
+	<!-- Сетка дней недели -->
+	<div class="grid grid-cols-7 text-center font-semibold text-yellow-700">
+		<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+	</div>
+
+	<!-- Сетка дней месяца -->
+	<div class="grid grid-cols-7 divide-x divide-y divide-yellow-100 border border-yellow-200">
+		@foreach (var day in visibleDays)
+		{
+			var isToday = day.Date.Date == DateTime.Today;
+			var hasTasks = taskMap.ContainsKey(day.Date.Date);
+
+			<div class="p-2 sm:p-3 text-sm cursor-pointer transition-all duration-200
+                        @(day.IsCurrentMonth ? "bg-white" : "bg-yellow-50 text-gray-400")
+                        @(isToday ? "border-2 border-yellow-500 rounded" : "")"
+				 @onclick="() => SelectDay(day.Date)">
+
+				<div class="flex items-center justify-between">
+					<span class="font-semibold">@day.Date.Day</span>
+					@if (hasTasks)
+					{
+						<span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+					}
+				</div>
+			</div>
+		}
+	</div>
+</div>
+
+@code {
+	private DateTime currentMonth = DateTime.Today;
+	private List<CalendarDay> visibleDays = new();
+	private Dictionary<DateTime, List<TaskModel>> taskMap = new();
+
+	private int selectedMonth;
+	private int selectedYear;
+	private int currentYear = DateTime.Today.Year;
+
+	protected override async Task OnInitializedAsync()
+	{
+		selectedMonth = currentMonth.Month;
+		selectedYear = currentMonth.Year;
+		await LoadCalendar();
+	}
+
+	private async Task LoadCalendar()
+	{
+		var allTasks = await TaskDb.GetAllAsync();
+		taskMap = allTasks
+			.Where(t => t.DueTime.HasValue && !t.IsDeleted)
+			.GroupBy(t => t.DueTime.Value.Date)
+			.ToDictionary(g => g.Key, g => g.ToList());
+
+		visibleDays = GetVisibleDays(currentMonth);
+	}
+
+	private void ChangeMonth(int offset)
+	{
+		currentMonth = currentMonth.AddMonths(offset);
+		selectedMonth = currentMonth.Month;
+		selectedYear = currentMonth.Year;
+		visibleDays = GetVisibleDays(currentMonth);
+	}
+
+	private void SelectDay(DateTime day)
+	{
+		Nav.NavigateTo($"/calendar/{day:yyyy-MM-dd}");
+	}
+
+	private List<CalendarDay> GetVisibleDays(DateTime month)
+	{
+		var firstDay = new DateTime(month.Year, month.Month, 1);
+		var startOfWeek = firstDay.AddDays(-(int)(firstDay.DayOfWeek == 0 ? 6 : (int)firstDay.DayOfWeek - 1));
+		var days = new List<CalendarDay>();
+		for (int i = 0; i < 42; i++)
+		{
+			var date = startOfWeek.AddDays(i);
+			days.Add(new CalendarDay
+				{
+					Date = date,
+					IsCurrentMonth = date.Month == month.Month
+				});
+		}
+		return days;
+	}
+
+	private async Task OnMonthChanged(ChangeEventArgs e)
+	{
+		selectedMonth = int.Parse(e.Value?.ToString() ?? $"{currentMonth.Month}");
+		await UpdateCalendarFromSelection();
+	}
+
+	private async Task OnYearChanged(ChangeEventArgs e)
+	{
+		selectedYear = int.Parse(e.Value?.ToString() ?? $"{currentMonth.Year}");
+		await UpdateCalendarFromSelection();
+	}
+
+	private async Task UpdateCalendarFromSelection()
+	{
+		currentMonth = new DateTime(selectedYear, selectedMonth, 1);
+		visibleDays = GetVisibleDays(currentMonth);
+		await InvokeAsync(StateHasChanged);
+	}
+
+	class CalendarDay
+	{
+		public DateTime Date { get; set; }
+		public bool IsCurrentMonth { get; set; }
+	}
+}

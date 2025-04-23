@@ -1,11 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
+using System.Text.Json.Serialization;
+using Tazzker.Client.Interfaces;
 namespace Tazzker.Client.Data.Models
 {
-    public class NoteModel
+
+    public class NoteModel : ISyncable
     {
         [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        [JsonPropertyName("id")]
+        public Guid NoteId { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = "";
         public string Body { get; set; } = "";
 

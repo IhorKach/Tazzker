@@ -21,10 +21,10 @@ namespace Tazzker.Client.Data.LocalDb
         }
         
         
-        public async Task<ListModel?> GetByIdAsync(string id)
+        public async Task<ListModel?> GetByIdAsync(Guid id)
         {
             var all = await GetAllAsync();
-            return all.FirstOrDefault(x=>x.Id == id);
+            return all.FirstOrDefault(x=>x.ListId == id);
         }
 
 
@@ -36,7 +36,7 @@ namespace Tazzker.Client.Data.LocalDb
         }
 
 
-        public async Task SoftDeleteAsync(string id)
+        public async Task SoftDeleteAsync(Guid id)
         {
             var list = await GetByIdAsync(id);
             if (list is null)
