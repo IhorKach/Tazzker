@@ -1,0 +1,67 @@
+﻿@using Tazzker.Client.Services
+@inject SyncService SyncService
+@inject SyncStatusService SyncStatus
+
+<div class="fixed bottom-4 right-4 z-50">
+    <button @onclick="ManualSync"
+            class="p-3 rounded-full shadow-md transition-colors duration-300"
+            style="background-color:@GetColor();">
+        <span class="text-xl">
+            @GetIcon()
+        </span>
+    </button>
+</div>
+
+@code {
+    private bool showStatus;
+
+    protected override void OnInitialized()
+    {
+        SyncStatus.OnChange += StateHasChanged;
+    }
+
+    private async Task ManualSync()
+    {
+        SyncStatus.Status = SyncState.Syncing;
+        try
+        {
+            await SyncService.SyncAllAsync();
+            await SyncService.SyncHardDeletedAsync();
+            await SyncService.PullAllAsync();
+
+            SyncStatus.Status = SyncState.Synced;
+            showStatus = true;
+            await Task.Delay(1000);
+        }
+        catch
+        {
+            SyncStatus.Status = SyncState.Error;
+            showStatus = true;
+            await Task.Delay(3000);
+        }
+
+        SyncStatus.Status = SyncState.Idle;
+        showStatus = false;
+    }
+
+    private string GetColor() => SyncStatus.Status switch
+    {
+        SyncState.Syncing => "#facc15",     // yellow
+        SyncState.Synced => "#4ade80",      // green
+        SyncState.Error => "#f87171",       // red
+        _ => "#d1d5db"                       // gray
+    };
+
+    private string GetIcon() => SyncStatus.Status switch
+    {
+        SyncState.Syncing => "🔄",
+        SyncState.Synced => showStatus ? "✅" : "🔄",
+        SyncState.Error => showStatus ? "❌" : "🔄",
+        _ => "🔄"
+    };
+
+    public void Dispose()
+    {
+        SyncStatus.OnChange -= StateHasChanged;
+    }
+}

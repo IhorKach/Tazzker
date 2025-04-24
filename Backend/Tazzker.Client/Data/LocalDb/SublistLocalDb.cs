@@ -23,7 +23,7 @@ namespace Tazzker.Client.Data.LocalDb
 		public async Task<SublistModel?> GetByIdAsync(Guid id)
 		{
 			var all = await GetAllAsync();
-			return all.FirstOrDefault(x => x.SublistId == id);
+			return all.FirstOrDefault(x => x.Id == id);
 		}
 
 		public async Task AddOrUpdateAsync(SublistModel item)
@@ -43,5 +43,11 @@ namespace Tazzker.Client.Data.LocalDb
 
 			await AddOrUpdateAsync(sublist);
 		}
-	}
+
+        public async Task<List<SublistModel>> GetAllRawAsync()
+        {
+            return await _db.GetAllAsync<SublistModel>(StoreName);
+        }
+
+    }
 }

@@ -6,5 +6,6 @@
         Task<T?> GetByIdAsync(Guid id);
         Task AddOrUpdateAsync(T item);
         Task SoftDeleteAsync(Guid id);
+        Task<List<T>> GetAllRawAsync();
     }
 }

@@ -8,7 +8,7 @@ namespace Tazzker.Client.Data.Models
     {
         [Key]
         [JsonPropertyName("id")]
-        public Guid TaskId { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         public Guid? SublistId { get; set; }
         public string Title { get; set; } = "";
@@ -23,6 +23,7 @@ namespace Tazzker.Client.Data.Models
 
         public bool IsDeleted { get; set; } = false;
         public bool IsSynced { get; set; } = false;
+        public bool PermDeleted { get; set; } = false;
     }
 
 }

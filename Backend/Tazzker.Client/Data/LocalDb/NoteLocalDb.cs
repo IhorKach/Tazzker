@@ -22,7 +22,7 @@ namespace Tazzker.Client.Data.LocalDb
         public async Task<NoteModel?> GetByIdAsync(Guid id)
         {
             var all = await GetAllAsync();
-            return all.FirstOrDefault(x => x.NoteId == id);
+            return all.FirstOrDefault(x => x.Id == id);
         }
 
         public async Task AddOrUpdateAsync(NoteModel item)
@@ -41,6 +41,11 @@ namespace Tazzker.Client.Data.LocalDb
             note.UpdatedAt = DateTime.UtcNow;
 
             await AddOrUpdateAsync(note);
+        }
+
+        public async Task<List<NoteModel>> GetAllRawAsync()
+        {
+            return await _db.GetAllAsync<NoteModel>(StoreName);
         }
     }
 }

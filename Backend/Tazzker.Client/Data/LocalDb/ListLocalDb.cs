@@ -24,7 +24,7 @@ namespace Tazzker.Client.Data.LocalDb
         public async Task<ListModel?> GetByIdAsync(Guid id)
         {
             var all = await GetAllAsync();
-            return all.FirstOrDefault(x=>x.ListId == id);
+            return all.FirstOrDefault(x=>x.Id == id);
         }
 
 
@@ -46,6 +46,11 @@ namespace Tazzker.Client.Data.LocalDb
             list.UpdatedAt = DateTime.UtcNow;
 
             await AddOrUpdateAsync(list);
+        }
+
+        public async Task<List<ListModel>> GetAllRawAsync()
+        {
+            return await _db.GetAllAsync<ListModel>(StoreName);
         }
     }
 }

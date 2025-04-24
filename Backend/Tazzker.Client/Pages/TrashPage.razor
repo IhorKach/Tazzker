@@ -1,0 +1,218 @@
+﻿@* @page "/trash"
+@using Tazzker.Client.Data.Models
+@using Tazzker.Client.Interfaces
+@inject ILocalDb<TaskModel> TaskDb
+@inject ILocalDb<NoteModel> NoteDb
+@inject ILocalDb<ListModel> ListDb
+@inject ILocalDb<SublistModel> SublistDb
+
+<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
+    🗑 Корзина
+</h2>
+
+<div class="px-4 py-6 space-y-6">
+    <!-- Задачи -->
+    <section>
+        <h3 class="text-lg font-semibold text-yellow-700 mb-2">📝 Задачи</h3>
+        @foreach (var task in trashTasks)
+        {
+            <div class="bg-yellow-50 rounded p-2 flex justify-between items-center shadow">
+                <span>@task.Title</span>
+                <div class="space-x-2">
+                    <button @onclick="() => RestoreTask(task.Id)" class="text-green-600 hover:underline">♻️ Восстановить</button>
+                    <button @onclick="() => DeleteTask(task.Id)" class="text-red-500 hover:underline">🗑 Удалить</button>
+                </div>
+            </div>
+        }
+    </section>
+
+    <!-- Заметки -->
+    <section>
+        <h3 class="text-lg font-semibold text-yellow-700 mb-2">📒 Заметки</h3>
+        @foreach (var note in trashNotes)
+        {
+            <div class="bg-yellow-50 rounded p-2 flex justify-between items-center shadow">
+                <span>@note.Title</span>
+                <div class="space-x-2">
+                    <button @onclick="() => RestoreNote(note.Id)" class="text-green-600 hover:underline">♻️ Восстановить</button>
+                    <button @onclick="() => DeleteNote(note.Id)" class="text-red-500 hover:underline">🗑 Удалить</button>
+                </div>
+            </div>
+        }
+    </section>
+
+    <!-- Списки -->
+    <section>
+        <h3 class="text-lg font-semibold text-yellow-700 mb-2">📂 Списки</h3>
+        @foreach (var list in trashLists)
+        {
+            <div class="bg-yellow-50 rounded p-2 flex justify-between items-center shadow">
+                <span>@list.Title</span>
+                <div class="space-x-2">
+                    <button @onclick="() => RestoreList(list.Id)" class="text-green-600 hover:underline">♻️ Восстановить</button>
+                    <button @onclick="() => DeleteList(list.Id)" class="text-red-500 hover:underline">🗑 Удалить</button>
+                </div>
+            </div>
+        }
+    </section>
+
+    <!-- Подсписки -->
+    <section>
+        <h3 class="text-lg font-semibold text-yellow-700 mb-2">📁 Подсписки</h3>
+        @foreach (var sub in trashSublists)
+        {
+            <div class="bg-yellow-50 rounded p-2 flex justify-between items-center shadow">
+                <span>@sub.Title</span>
+                <div class="space-x-2">
+                    <button @onclick="() => RestoreSublist(sub.Id)" class="text-green-600 hover:underline">♻️ Восстановить</button>
+                    <button @onclick="() => DeleteSublist(sub.Id)" class="text-red-500 hover:underline">🗑 Удалить</button>
+                </div>
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    List<TaskModel> trashTasks = new();
+    List<NoteModel> trashNotes = new();
+    List<ListModel> trashLists = new();
+    List<SublistModel> trashSublists = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        trashTasks = (await TaskDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
+        trashNotes = (await NoteDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
+        trashLists = (await ListDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
+        trashSublists = (await SublistDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
+    }
+
+    async Task RestoreTask(Guid id) => await Restore(trashTasks, id, TaskDb);
+    async Task DeleteTask(Guid id) => await HardDelete(trashTasks, id, TaskDb);
+
+    async Task RestoreNote(Guid id) => await Restore(trashNotes, id, NoteDb);
+    async Task DeleteNote(Guid id) => await HardDelete(trashNotes, id, NoteDb);
+
+    async Task RestoreList(Guid id) => await Restore(trashLists, id, ListDb);
+    async Task DeleteList(Guid id) => await HardDelete(trashLists, id, ListDb);
+
+    async Task RestoreSublist(Guid id) => await Restore(trashSublists, id, SublistDb);
+    async Task DeleteSublist(Guid id) => await HardDelete(trashSublists, id, SublistDb);
+
+    async Task Restore<T>(List<T> list, Guid id, ILocalDb<T> db) where T : ISyncable
+    {
+        var item = list.FirstOrDefault(x => x.Id == id);
+        if (item is null) return;
+
+        item.IsDeleted = false;
+        item.IsSynced = false;
+        await db.AddOrUpdateAsync(item);
+        list.Remove(item);
+    }
+
+    async Task HardDelete<T>(List<T> list, Guid id, ILocalDb<T> db) where T : ISyncable
+    {
+        var item = list.FirstOrDefault(x => x.Id == id);
+        if (item is null) return;
+
+        item.PermDeleted = true;
+        item.IsSynced = false;
+        await db.AddOrUpdateAsync(item);
+        list.Remove(item);
+    }
+}
+ *@
+
+ @page "/trash"
+@using Tazzker.Client.Data.Models
+@using Tazzker.Client.Interfaces
+@inject ILocalDb<TaskModel> TaskDb
+@inject ILocalDb<NoteModel> NoteDb
+
+<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
+    🗑 Корзина
+</h2>
+
+<div class="px-4 py-6 space-y-6">
+    <!-- Задачи -->
+    <section>
+        <h3 class="text-lg font-semibold text-yellow-700 mb-2">📝 Задачи</h3>
+        @if (trashTasks.Count == 0)
+        {
+            <div class="text-gray-500 italic">Нет удалённых задач</div>
+        }
+        else
+        {
+            @foreach (var task in trashTasks)
+            {
+                <div class="bg-yellow-50 rounded p-2 flex justify-between items-center shadow">
+                    <span>@task.Title</span>
+                    <div class="space-x-2">
+                        <button @onclick="() => RestoreTask(task.Id)" class="text-green-600 hover:underline">♻️ Восстановить</button>
+                        <button @onclick="() => DeleteTask(task.Id)" class="text-red-500 hover:underline">🗑 Удалить</button>
+                    </div>
+                </div>
+            }
+        }
+    </section>
+
+    <!-- Заметки -->
+    <section>
+        <h3 class="text-lg font-semibold text-yellow-700 mb-2">📒 Заметки</h3>
+        @if (trashNotes.Count == 0)
+        {
+            <div class="text-gray-500 italic">Нет удалённых заметок</div>
+        }
+        else
+        {
+            @foreach (var note in trashNotes)
+            {
+                <div class="bg-yellow-50 rounded p-2 flex justify-between items-center shadow">
+                    <span>@note.Title</span>
+                    <div class="space-x-2">
+                        <button @onclick="() => RestoreNote(note.Id)" class="text-green-600 hover:underline">♻️ Восстановить</button>
+                        <button @onclick="() => DeleteNote(note.Id)" class="text-red-500 hover:underline">🗑 Удалить</button>
+                    </div>
+                </div>
+            }
+        }
+    </section>
+</div>
+
+@code {
+    List<TaskModel> trashTasks = new();
+    List<NoteModel> trashNotes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        trashTasks = (await TaskDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
+        trashNotes = (await NoteDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
+    }
+
+    async Task RestoreTask(Guid id) => await Restore(trashTasks, id, TaskDb);
+    async Task DeleteTask(Guid id) => await HardDelete(trashTasks, id, TaskDb);
+
+    async Task RestoreNote(Guid id) => await Restore(trashNotes, id, NoteDb);
+    async Task DeleteNote(Guid id) => await HardDelete(trashNotes, id, NoteDb);
+
+    async Task Restore<T>(List<T> list, Guid id, ILocalDb<T> db) where T : ISyncable
+    {
+        var item = list.FirstOrDefault(x => x.Id == id);
+        if (item is null) return;
+
+        item.IsDeleted = false;
+        item.IsSynced = false;
+        await db.AddOrUpdateAsync(item);
+        list.Remove(item);
+    }
+
+    async Task HardDelete<T>(List<T> list, Guid id, ILocalDb<T> db) where T : ISyncable
+    {
+        var item = list.FirstOrDefault(x => x.Id == id);
+        if (item is null) return;
+
+        item.PermDeleted = true;
+        item.IsSynced = false;
+        await db.AddOrUpdateAsync(item);
+        list.Remove(item);
+    }
+}

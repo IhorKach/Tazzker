@@ -32,7 +32,7 @@ else
 					   @bind:after="() => SaveTask(task)"
 					   class="mr-2" />
 				<span class="flex-grow">@task.Title</span>
-				<button @onclick="(e => DeleteTask(task.TaskId))"
+				<button @onclick="(e => DeleteTask(task.Id))"
 				@onclick:stopPropagation
 						class="ml-2 text-red-500 hover:text-red-700">
 					✕
@@ -86,7 +86,7 @@ else
 			.ToList();
 
 		// Обновляем ссылку на выбранную задачу (иначе TaskPanel видит старую)
-		selectedTask = tasks.FirstOrDefault(t => t.TaskId == task.TaskId);
+		selectedTask = tasks.FirstOrDefault(t => t.Id == task.Id);
 	}
 
 
@@ -94,7 +94,7 @@ else
 	async Task DeleteTask(Guid id)
 	{
 		await TaskDb.SoftDeleteAsync(id);
-		tasks = tasks.Where(t => t.TaskId != id).ToList();
+		tasks = tasks.Where(t => t.Id != id).ToList();
 		selectedTask = null;
 	}
 }

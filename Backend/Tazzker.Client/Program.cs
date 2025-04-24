@@ -23,6 +23,7 @@ namespace Tazzker.Client
 
             builder.Services.AddScoped<TokenService>();
             builder.Services.AddScoped<SyncService>();
+            builder.Services.AddSingleton<SyncStatusService>();
 
 
             builder.RootComponents.Add<App>("#app");

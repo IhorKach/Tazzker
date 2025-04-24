@@ -29,7 +29,7 @@ else
 		{
 			<div class="relative group">
 				<!-- ✕ кнопка -->
-				<button @onclick="(e => DeleteNote(note.NoteId))"
+				<button @onclick="(e => DeleteNote(note.Id))"
 				@onclick:stopPropagation
 						class="absolute top-2 right-2 text-yellow-700 hover:text-red-500 font-bold text-xl opacity-0 group-hover:opacity-100 transition z-10"
 						title="Удалить заметку">
@@ -37,7 +37,7 @@ else
 				</button>
 
 				<!-- Карточка -->
-				<div @onclick="@(() => Nav.NavigateTo($"/note/{note.NoteId}"))"
+				<div @onclick="@(() => Nav.NavigateTo($"/note/{note.Id}"))"
 					 class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-xl shadow cursor-pointer transition-all h-full">
 					<div class="font-semibold text-lg mb-1 text-gray-800 truncate">@note.Title</div>
 					<div class="text-sm text-gray-600 line-clamp-3">@note.Body</div>
@@ -59,7 +59,7 @@ else
 	{
 		var note = new NoteModel
 			{
-				NoteId = Guid.NewGuid(),
+				Id = Guid.NewGuid(),
 				Title = "Новая заметка",
 				Body = "",
 				CreatedAt = DateTime.UtcNow,
@@ -68,7 +68,7 @@ else
 
 		await NoteDb.AddOrUpdateAsync(note);
 		notes = await NoteDb.GetAllAsync();
-		Nav.NavigateTo($"/note/{note.NoteId}");
+		Nav.NavigateTo($"/note/{note.Id}");
 	}
 
 	async Task DeleteNote(Guid id)

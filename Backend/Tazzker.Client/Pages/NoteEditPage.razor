@@ -43,7 +43,7 @@
     protected override async Task OnInitializedAsync()
     {
         var found = await NoteDb.GetByIdAsync(Id);
-        note = found ?? new NoteModel { NoteId = Id, Title = "", Body = "" };
+        note = found ?? new NoteModel { Id = Id, Title = "", Body = "" };
     }
 
              void GoBack()

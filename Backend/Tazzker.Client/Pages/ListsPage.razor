@@ -111,14 +111,14 @@ else
     <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         @foreach (var list in lists)
         {
-            <div @onclick="@(() => Nav.NavigateTo($"/list/{list.ListId}"))"
+            <div @onclick="@(() => Nav.NavigateTo($"/list/{list.Id}"))"
                  class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-xl shadow cursor-pointer transition-all group">
                 <div class="text-lg font-semibold text-gray-800 truncate mb-1">@list.Title</div>
                 <div class="text-sm text-gray-600">
                     🕒 @list.UpdatedAt.ToLocalTime().ToString("g")
                 </div>
                 <div class="text-sm text-gray-500">
-                    ✅ Задач: @GetTaskCount(list.ListId)
+                    ✅ Задач: @GetTaskCount(list.Id)
                 </div>
             </div>
         }
@@ -145,7 +145,7 @@ else
 
         sublistsByList = sublists
             .GroupBy(s => s.ListId)
-            .ToDictionary(g => g.Key, g => g.Select(s => s.SublistId).ToList());
+            .ToDictionary(g => g.Key, g => g.Select(s => s.Id).ToList());
     }
 
     int GetTaskCount(Guid listId)
@@ -160,7 +160,7 @@ else
     {
         var list = new ListModel
             {
-                ListId = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 Title = "Новый список",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -175,6 +175,7 @@ else
     private async Task SyncAll()
     {
         await Sync.SyncAllAsync();
+        await Sync.SyncHardDeletedAsync();
         Console.WriteLine("Синхронизация завершена.");
     }
 

@@ -525,21 +525,21 @@
     {
         <div class="min-w-[300px] bg-white rounded-xl shadow p-4 flex-shrink-0 snap-start sm:w-full">
             <div class="flex justify-between items-center mb-3">
-                <input @ref="sublistInputs[sub.SublistId]"
+                <input @ref="sublistInputs[sub.Id]"
                        type="text"
                        @bind="sub.Title"
-                       @onfocus="() => FocusToEnd(sub.SublistId)"
+                       @onfocus="() => FocusToEnd(sub.Id)"
                        @onblur="() => SaveSublist(sub)"
                        class="w-full font-semibold text-lg border-b border-gray-300 focus:outline-none focus:border-yellow-500" />
 
-                <button @onclick="() => AddTask(sub.SublistId)"
+                <button @onclick="() => AddTask(sub.Id)"
                         class="ml-2 text-yellow-600 hover:text-yellow-800 text-lg">
                     ➕
                 </button>
             </div>
 
             <ul class="space-y-2">
-                @if (tasksBySublist.TryGetValue(sub.SublistId, out var taskList))
+                @if (tasksBySublist.TryGetValue(sub.Id, out var taskList))
                 {
                     @foreach (var task in taskList)
                     {
@@ -553,7 +553,7 @@
                                 @task.Title
                             </span>
 
-                            <button @onclick="() => DeleteTask(task.TaskId)"
+                            <button @onclick="() => DeleteTask(task.Id)"
                             @onclick:stopPropagation
                                     class="ml-2 text-red-500 hover:text-red-700">
                                 ✕
@@ -563,7 +563,7 @@
                 }
             </ul>
 
-            <button @onclick="() => AddTask(sub.SublistId)"
+            <button @onclick="() => AddTask(sub.Id)"
                     class="mt-3 bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded shadow w-full">
                 ➕ Добавить задачу
             </button>
@@ -606,7 +606,7 @@
         sublists = allSublists.Where(s => s.ListId == Id).OrderBy(s => s.Order).ToList();
 
         foreach (var s in sublists)
-            sublistInputs[s.SublistId] = default;
+            sublistInputs[s.Id] = default;
 
         if (sublists.Count == 0)
         {
@@ -622,8 +622,8 @@
     {
         var allTasks = await TaskDb.GetAllAsync();
         tasksBySublist = sublists.ToDictionary(
-            s => s.SublistId,
-            s => allTasks.Where(t => t.SublistId == s.SublistId).OrderBy(t => t.Order).ToList()
+            s => s.Id,
+            s => allTasks.Where(t => t.SublistId == s.Id).OrderBy(t => t.Order).ToList()
         );
     }
 
@@ -642,7 +642,7 @@
             .ToList());
 
         foreach (var s in sublists)
-            sublistInputs[s.SublistId] = default;
+            sublistInputs[s.Id] = default;
 
         await LoadTasks();
     }
