@@ -34,7 +34,9 @@
 
 @inherits LayoutComponentBase
 @using Tazzker.Client.Services
-@* @inject SyncStatusService SyncStatus *@
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject IndexedDbBridge Db
 
 <div class="flex h-screen">
     <!-- Sidebar -->
@@ -51,6 +53,11 @@
         <div class="bg-gray-800 text-white flex justify-between items-center px-4 py-2 shadow">
             <h1 class="text-xl font-bold">Tazzker</h1>
             <button class="text-2xl text-left" @onclick="ToggleNav">☰</button>
+            <button class="text-sm text-red-300 hover:text-white ml-4"
+                    @onclick="Logout">
+                🚪 Выйти
+            </button>
+
         </div>
 
         <!-- Контент -->
@@ -61,10 +68,23 @@
 </div>
 
 <!-- 🟡 ИНДИКАТОР СИНХРОНИЗАЦИИ: вынесен за пределы основного layout -->
-<Tazzker.Client.Components.SyncIndicator/>
+@if (!Nav.Uri.Contains("/auth")) // добавить в это поле все страницы где его не должно быть.
+{
+    <Tazzker.Client.Components.SyncIndicator/>
+}
 <Tazzker.Client.Components.AutoSyncService />
 
 @code {
     private bool isNavOpen = true;
     private void ToggleNav() => isNavOpen = !isNavOpen;
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+        foreach (var store in new[] { "Tasks", "Notes", "Lists", "Sublists" })
+        {
+            await Db.ClearAsync(store);
+        }
+        Nav.NavigateTo("/auth", forceLoad: true);
+    }
 }

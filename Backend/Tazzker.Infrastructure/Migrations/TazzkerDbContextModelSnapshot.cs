@@ -138,7 +138,7 @@ namespace Tazzker.Infrastructure.Migrations
                     b.Property<DateTime?>("ReminderAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("SublistId")
+                    b.Property<Guid?>("SublistId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Title")

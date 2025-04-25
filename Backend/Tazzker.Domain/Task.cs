@@ -6,7 +6,7 @@ namespace Tazzker.Domain
     {
         [Key]
         public Guid TaskId { get; set; }
-        public Guid SublistId { get; set; }
+        public Guid? SublistId { get; set; }
         public Guid UserId { get; set; }
         public float Order { get; set; }
 

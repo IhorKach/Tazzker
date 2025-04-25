@@ -6,7 +6,7 @@ namespace Tazzker.Application.DTOs
     {
         [JsonPropertyName("id")]
         public Guid TaskId { get; set; }
-        public Guid SublistId { get; set; }
+        public Guid? SublistId { get; set; }
         public float Order { get; set; }
 
         public string Title { get; set; } = null!;

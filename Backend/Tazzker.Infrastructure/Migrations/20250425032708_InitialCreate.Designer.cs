@@ -12,7 +12,7 @@ using Tazzker.Infrastructure.Contexts;
 namespace Tazzker.Infrastructure.Migrations
 {
     [DbContext(typeof(TazzkerDbContext))]
-    [Migration("20250414044956_InitialCreate")]
+    [Migration("20250425032708_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -141,7 +141,7 @@ namespace Tazzker.Infrastructure.Migrations
                     b.Property<DateTime?>("ReminderAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("SublistId")
+                    b.Property<Guid?>("SublistId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Title")

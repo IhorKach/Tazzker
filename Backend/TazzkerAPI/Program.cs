@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using TazzkerAPI.Middleware;
+using Microsoft.AspNetCore.Mvc;
 namespace TazzkerAPI
 {
     public class Program
@@ -119,6 +120,24 @@ namespace TazzkerAPI
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
+            });
+
+
+            //errors convertor to readeable for user way
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    var errors = context.ModelState
+                        .Where(e => e.Value?.Errors.Count > 0)
+                        .SelectMany(x => x.Value!.Errors)
+                        .Select(x => x.ErrorMessage)
+                        .ToList();
+
+                    var joined = string.Join(" | ", errors);
+
+                    return new BadRequestObjectResult(new { message = joined });
+                };
             });
 
 

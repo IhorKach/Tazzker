@@ -107,7 +107,7 @@ namespace Tazzker.Infrastructure.Migrations
                 columns: table => new
                 {
                     TaskId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SublistId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SublistId = table.Column<Guid>(type: "uuid", nullable: true),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Order = table.Column<float>(type: "real", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),

@@ -1,8 +1,11 @@
 ﻿@page "/auth"
 @using System.Net.Http.Json
+@using Tazzker.Client.Services
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject SyncService SyncService
+
 <h2 class="text-2xl font-bold mb-6 text-yellow-800 text-center">🐝 Добро пожаловать в Tazzker</h2>
 
 <!-- Переключатели Войти / Зарегистрироваться -->
@@ -19,13 +22,17 @@
 
 <!-- Форма -->
 <div class="mt-6 max-w-sm mx-auto bg-white p-6 rounded shadow space-y-4">
-    <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Email" />
-    <InputText @bind-Value="Password" class="w-full border p-2 rounded" placeholder="Пароль" type="password" />
-
     @if (!isLogin)
     {
-        <InputText @bind-Value="ConfirmPassword" class="w-full border p-2 rounded" placeholder="Повторите пароль" type="password" />
+        <InputText @bind-Value="Email" class="w-full border p-2 rounded" placeholder="Email" />
+        <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Имя пользователя" />
     }
+    else
+    {
+        <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Имя пользователя или Email" />
+    }
+    <InputText @bind-Value="Password" class="w-full border p-2 rounded" placeholder="Пароль" />
+    <InputText @bind-Value="ConfirmPassword" class="w-full border p-2 rounded" placeholder="Подтвердите пароль" />
 
     <button @onclick="Submit"
             class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded">
@@ -40,6 +47,7 @@
 
 @code {
     private bool isLogin = true;
+    private string Email = "";
     private string Username = "";
     private string Password = "";
     private string ConfirmPassword = "";
@@ -66,11 +74,10 @@
             return;
         }
 
-        var payload = new
-        {
-            Username,
-            Password
-        };
+        object payload = isLogin
+            ? new { Username, Password } // логин по username
+            : new { Email, Username, Password };
+
 
         var url = isLogin ? "/api/auth/login" : "/api/auth/register";
 
@@ -82,7 +89,10 @@
                 var token = await response.Content.ReadAsStringAsync();
                 await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
 
-                // todo: сохранить токен, редирект
+                // ⬇️ Подтягиваем актуальные данные
+                await SyncService.PullAllAsync();
+
+                // ✅ Редирект после логина
                 Nav.NavigateTo("/lists");
             }
             else
@@ -97,4 +107,5 @@
             Error = "Ошибка соединения с сервером.";
         }
     }
+
 }
