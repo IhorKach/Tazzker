@@ -9,4 +9,4 @@ RUN dotnet publish "Tazzker.Client.csproj" -c Release -o /app/dist
 
 # Используем nginx для раздачи клиента
 FROM nginx:alpine
-COPY --from=build /app/dist/wwwroot /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html

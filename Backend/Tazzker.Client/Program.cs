@@ -29,7 +29,7 @@ namespace Tazzker.Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://api:5001/") });
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://api:5000/") });
             await builder.Build().RunAsync();
         }
     }

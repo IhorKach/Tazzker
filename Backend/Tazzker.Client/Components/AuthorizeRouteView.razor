@@ -1,6 +1,8 @@
 ﻿@inject IJSRuntime JS
 @inject NavigationManager Nav
 @using Microsoft.AspNetCore.Components.Routing
+@using Tazzker.Client.Services
+@inject IndexedDbBridge Db
 
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
@@ -23,8 +25,20 @@
     {
         Nav.LocationChanged += OnLocationChanged;
         await CheckAuthorizationAsync();
+        CheckIfDbExists();
     }
+    //db initialize
+    async Task Init() => await Db.InitAsync();
 
+    private async void CheckIfDbExists()
+    {
+        var hasStores = await Db.HasAnyStoresAsync();
+
+        if (!hasStores)
+        {
+           await Init();
+        }
+    }
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         await CheckAuthorizationAsync();
@@ -35,7 +49,7 @@
         var path = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
 
         // Разрешаем доступ к открытым страницам
-        if (path.StartsWith("auth") || path.StartsWith("register"))
+        if (path.StartsWith("auth"))
         {
             isAuthorized = true;
             StateHasChanged();

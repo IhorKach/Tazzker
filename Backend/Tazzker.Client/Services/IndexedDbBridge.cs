@@ -40,6 +40,11 @@ namespace Tazzker.Client.Services
         {
             await _js.InvokeVoidAsync("indexedDbBridge.clearStore", _dbName, store);
         }
+
+        public async Task<bool> HasAnyStoresAsync()
+        {
+            return await _js.InvokeAsync<bool>("checkIndexedDbStores", _dbName);
+        }
     }
 
 }
