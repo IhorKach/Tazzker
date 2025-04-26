@@ -81,10 +81,8 @@
     private async Task Logout()
     {
         await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
-        foreach (var store in new[] { "Tasks", "Notes", "Lists", "Sublists" })
-        {
-            await Db.ClearAsync(store);
-        }
+        await JS.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+
         Nav.NavigateTo("/auth", forceLoad: true);
     }
 }

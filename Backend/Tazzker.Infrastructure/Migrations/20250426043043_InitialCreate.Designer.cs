@@ -12,7 +12,7 @@ using Tazzker.Infrastructure.Contexts;
 namespace Tazzker.Infrastructure.Migrations
 {
     [DbContext(typeof(TazzkerDbContext))]
-    [Migration("20250425032708_InitialCreate")]
+    [Migration("20250426043043_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -252,6 +252,9 @@ namespace Tazzker.Infrastructure.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RefreshToken")
                         .HasColumnType("text");
 
                     b.Property<string>("Username")

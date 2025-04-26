@@ -244,12 +244,12 @@
     }
 } *@
 @page "/calendar/{date:datetime}"
+ @using Tazzker.Client.Components
 @using Tazzker.Client.Data.Models
 @using Tazzker.Client.Interfaces
 @using System.Globalization
 @inject ILocalDb<TaskModel> TaskDb
 @inject NavigationManager Nav
-@using Tazzker.Client.Components
 
 <h2 class="text-2xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
     @date.ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)

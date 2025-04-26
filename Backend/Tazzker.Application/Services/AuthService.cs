@@ -37,7 +37,7 @@ namespace Tazzker.Application.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return null;
 
-            return GenerateToken(user);
+            return GenerateToken(user, TimeSpan.FromMinutes(15));
         }
 
         public async Task<string?> UserRegisterAsync(UserCreateDto dto)
@@ -55,10 +55,97 @@ namespace Tazzker.Application.Services
 
             await _userRepository.AddAsync(newUser);
 
-            return GenerateToken(newUser);
+            return GenerateToken(newUser, TimeSpan.FromMinutes(15));
         }
 
-        private string GenerateToken(User user)
+        //new method
+        public async Task<AuthResponse?> UserRegisterAsyncNew(UserCreateDto dto)
+        {
+            if (dto == null) return null;
+
+            if (!(await _userRepository.GetByUsernameAsync(dto.Username) is null) || !(await _userRepository.GetByEmailAsync(dto.Email) is null)) return null;
+
+            var newUser = new User
+            {
+                Username = dto.Username,
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+            };
+
+            var newAccessToken = GenerateToken(newUser, TimeSpan.FromMinutes(15));
+            var newRefreshToken = GenerateToken(newUser, TimeSpan.FromDays(7));
+
+            newUser.RefreshToken = newRefreshToken;
+
+            await _userRepository.AddAsync(newUser);
+
+            return new AuthResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+        }
+
+        //new method 
+        public async Task<AuthResponse?> UserLoginAsyncNew(UserLoginDto dto)
+        {
+            if (dto == null)
+                return null;
+
+            var user = await _userRepository.GetByUsernameAsync(dto.Username);
+
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                return null;
+
+
+            var newAccessToken = GenerateToken(user, TimeSpan.FromMinutes(15));
+            var newRefreshToken = GenerateToken(user, TimeSpan.FromDays(7));
+
+            user.RefreshToken = newRefreshToken;
+
+            await _userRepository.UpdateAsync(user);
+
+            return new AuthResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+
+        }
+
+
+
+        public async Task<AuthResponse?> RefreshTokenAsync(string clientRefreshToken)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(clientRefreshToken);
+
+            var userId = token.Claims.FirstOrDefault(c=> c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) 
+                return null;
+            
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            if (user == null || user.RefreshToken != clientRefreshToken) 
+                return null;
+
+            if(token.ValidTo < DateTime.UtcNow)
+                return null;
+
+            var newAccessToken = GenerateToken(user, TimeSpan.FromMinutes(15));
+            var newRefreshToken = GenerateToken(user, TimeSpan.FromDays(7));
+            user.RefreshToken = newRefreshToken;
+            await _userRepository.UpdateAsync(user);
+
+            return new AuthResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+        }
+
+
+        private string GenerateToken(User user, TimeSpan validFor)
         {
             var claims = new[]
             {
@@ -74,7 +161,7 @@ namespace Tazzker.Application.Services
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(12),
+                expires: DateTime.UtcNow.Add(validFor),
                 signingCredentials: creds
                 );
 

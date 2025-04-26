@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Tazzker.Domain
 {
@@ -16,5 +11,7 @@ namespace Tazzker.Domain
         public string PasswordHash { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+//refresh token field
+        public string? RefreshToken { get; set; }
     }
 }

@@ -1,0 +1,62 @@
+﻿@inject IJSRuntime JS
+@inject NavigationManager Nav
+@using Microsoft.AspNetCore.Components.Routing
+
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        @if (isAuthorized)
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        }
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p>Страница не найдена.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code {
+    private bool isAuthorized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+        await CheckAuthorizationAsync();
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        await CheckAuthorizationAsync();
+    }
+
+    private async Task CheckAuthorizationAsync()
+    {
+        var path = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
+
+        // Разрешаем доступ к открытым страницам
+        if (path.StartsWith("auth") || path.StartsWith("register"))
+        {
+            isAuthorized = true;
+            StateHasChanged();
+            return;
+        }
+
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Nav.NavigateTo("/auth", forceLoad: true);
+        }
+        else
+        {
+            isAuthorized = true;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}

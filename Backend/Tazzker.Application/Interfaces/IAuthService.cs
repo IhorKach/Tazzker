@@ -11,5 +11,9 @@ namespace Tazzker.Application.Interfaces
     {
         Task<string?> UserRegisterAsync(UserCreateDto dto);
         Task<string?> UserLoginAsync(UserLoginDto dto);
+        Task<AuthResponse?> UserRegisterAsyncNew(UserCreateDto dto);
+        Task<AuthResponse?> UserLoginAsyncNew(UserLoginDto dto);
+        Task<AuthResponse?> RefreshTokenAsync(string clientRefreshToken);
+
     }
 }

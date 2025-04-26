@@ -110,13 +110,28 @@ namespace TazzkerAPI
                     };
                 });
 
+
+
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenAnyIP(5000); // HTTP
+                options.ListenAnyIP(5001, listenOptions =>
+                {
+                    listenOptions.UseHttps(); // HTTPS
+                });
+            });
+
+
+
+
+
             //builder.WebHost.UseUrls("http://*:5173");
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:7212", "https://localhost:7212") // обе версии
+                        .WithOrigins("http://localhost:7212", "https://localhost:7212", "http://client:80", "http://localhost:8080") // обе версии
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
