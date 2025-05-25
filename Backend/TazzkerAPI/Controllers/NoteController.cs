@@ -26,8 +26,8 @@ namespace TazzkerAPI.Controllers
         public async Task<IActionResult> SyncNotes([FromBody] IEnumerable<NoteDTO> notes)
         {
             return await _noteService.SyncNotesAsync(notes)
-                ? Ok("Successfully synced!")
-                : BadRequest("During sync something went wrong, try again!");
+                ? Ok("Notes successfully synced.")
+                : BadRequest("Error synchronizing notes. Please try again.");
         }
 
         [HttpPost("clearTrashedNotes")]
@@ -35,7 +35,7 @@ namespace TazzkerAPI.Controllers
         {
             return await _noteService.DeleteNotesAsync(noteIds)
                 ? NoContent()
-                : BadRequest("During Cleaning something went wrong, try again!");
+                : BadRequest("Error deleting notes. Please try again.");
         }
     }
 }

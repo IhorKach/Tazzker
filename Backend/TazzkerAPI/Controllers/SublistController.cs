@@ -27,8 +27,8 @@ namespace TazzkerAPI.Controllers
         public async Task<IActionResult> SyncTasks([FromBody] IEnumerable<SublistDTO> sublists)
         {
             return await _sublistService.SyncSublistsAsync(sublists)
-                ? Ok("Successfully synced!")
-                : BadRequest("During sync something went wrong, try again!");
+                ? Ok("Sublists successfully synced.")
+                : BadRequest("Error synchronizing sublists. Please try again.");
         }
 
         [HttpPost("clearTrashedSublists")]
@@ -36,7 +36,7 @@ namespace TazzkerAPI.Controllers
         {
             return await _sublistService.DeleteSublistsAsync(sublistIds)
                 ? NoContent()
-                : BadRequest("During Cleaning something went wrong, try again!");
+                : BadRequest("Error deleting sublists. Please try again.");
         }
     }
 }

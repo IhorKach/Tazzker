@@ -75,7 +75,7 @@ namespace TazzkerAPI.Controllers
 		public async Task<IActionResult> Refresh()
 		{
 			var success = await _service.RefreshTokenAsync(HttpContext);
-			return success ? Ok() : Unauthorized();
+			return success ? Ok() : Unauthorized("Token is invalid or expired");
 		}
 
 		[HttpPost("logout")]
@@ -90,7 +90,7 @@ namespace TazzkerAPI.Controllers
 		public IActionResult GetUserId()
 		{
 			var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-			return userId != null ? Ok(userId) : Unauthorized();
+			return userId != null ? Ok(userId) : Unauthorized("User is not authorized.");
 		}
 
     }

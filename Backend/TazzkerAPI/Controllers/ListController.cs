@@ -26,8 +26,8 @@ namespace TazzkerAPI.Controllers
         public async Task<IActionResult> SyncLists([FromBody] IEnumerable<ListDTO> lists)
         {
             return await _listService.SyncListsAsync(lists)
-                ? Ok("Successfully synced!")
-                : BadRequest("During sync something went wrong, try again!");
+                ? Ok("Lists are successfully synced!")
+                : BadRequest("Error synchronizing lists. Please try again.");
         }
 
         [HttpPost("clearTrashedLists")]
@@ -35,7 +35,7 @@ namespace TazzkerAPI.Controllers
         {
             return await _listService.DeleteListsAsync(listIds)
                 ? NoContent()
-                : BadRequest("During Cleaning something went wrong, try again!");
+                : BadRequest("Error deleting lists. Please try again.");
         }
     }
 }
