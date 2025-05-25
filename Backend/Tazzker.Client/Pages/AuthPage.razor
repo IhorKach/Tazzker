@@ -8,37 +8,37 @@
 @inject IJSRuntime JS
 @inject SyncService SyncService
 
-<h2 class="text-2xl font-bold mb-6 text-yellow-800 text-center">🐝 Добро пожаловать в Tazzker</h2>
+<h2 class="text-2xl font-bold mb-6 text-yellow-800 text-center">🐝 Welcome to Tazzker</h2>
 
 <!-- Переключатели Войти / Зарегистрироваться -->
 <div class="flex justify-center space-x-4">
     <button @onclick="() => isLogin = true"
             class=@($"px-4 py-2 rounded font-semibold transition-all {(isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
-        Войти
+        Sign in
     </button>
     <button @onclick="() => isLogin = false"
             class=@($"px-4 py-2 rounded font-semibold transition-all {(!isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
-        Зарегистрироваться
+        Sign up
     </button>
 </div>
 
 <!-- Форма -->
 <div class="mt-6 max-w-sm mx-auto bg-white p-6 rounded shadow space-y-4">
-    @if (!isLogin)
+  @*   @if (!isLogin)
     {
         <InputText @bind-Value="Email" class="w-full border p-2 rounded" placeholder="Email" />
         <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Имя пользователя" />
     }
     else
-    {
-        <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Имя пользователя или Email" />
-    }
-    <InputText @bind-Value="Password" class="w-full border p-2 rounded" placeholder="Пароль" />
-    <InputText @bind-Value="ConfirmPassword" class="w-full border p-2 rounded" placeholder="Подтвердите пароль" />
+    { *@
+        <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Username" />
+    @* } *@
+    <InputText @bind-Value="Password" class="w-full border p-2 rounded" placeholder="Password" />
+     @* <InputText @bind-Value="ConfirmPassword" class="w-full border p-2 rounded" placeholder="Подтвердите пароль" /> *@
 
     <button @onclick="Submit"
             class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded">
-        @(isLogin ? "Войти" : "Зарегистрироваться")
+        @(isLogin ? "Sign In" : "Sign up")
     </button>
 
     @if (!string.IsNullOrWhiteSpace(Error))
@@ -49,31 +49,31 @@
 
 @code {
     private bool isLogin = true;
-    private string Email = "";
+    // private string Email = "";
     private string Username = "";
     private string Password = "";
-    private string ConfirmPassword = "";
+    // private string ConfirmPassword = "";
     private string Error = "";
 
     private async Task Submit()
     {
         Error = "";
 
-        if (!isLogin && Password != ConfirmPassword)
-        {
-            Error = "Пароли не совпадают.";
-            return;
-        }
+        // if (!isLogin && Password != ConfirmPassword)
+        // {
+        //     Error = "Пароли не совпадают.";
+        //     return;
+        // }
 
         if (!await JS.InvokeAsync<bool>("isOnline"))
         {
-            Error = "Нет подключения к интернету.";
+            Error = "No internet connection.";
             return;
         }
 
         object payload = isLogin
             ? new { Username, Password }
-            : new { Email, Username, Password };
+            : new { /* Email, */ Username, Password };
 
         var url = isLogin ? "/api/auth/login" : "/api/auth/register";
 
@@ -99,7 +99,7 @@
 
             if (!userIdResponse.IsSuccessStatusCode)
             {
-                Error = "Не удалось получить userId.";
+                Error = "Failed to obtain user ID.";
                 return;
             }
 
@@ -134,7 +134,7 @@
         catch (Exception ex)
         {
             Console.WriteLine(ex);
-            Error = "Ошибка соединения с сервером.";
+            Error = "Server connection error.";
         }
     }
 

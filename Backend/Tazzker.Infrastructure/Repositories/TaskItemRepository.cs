@@ -30,12 +30,12 @@ namespace Tazzker.Infrastructure.Repositories
 
         public async Task<IEnumerable<TaskItem>> GetAllTaskItemsAsync(Guid userId)
         {
-            return await _context.TaskItems.Where(t => t.UserId == userId && !t.IsDeleted).AsNoTracking().ToListAsync();
+            return await _context.TaskItems.Where(t => t.UserId == userId /*&& !t.IsDeleted*/).AsNoTracking().ToListAsync();
         }
 
         public async Task<TaskItem?> GetTaskItemByIdAsync(Guid taskId, Guid userId)
         {
-            var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.UserId == userId && t.TaskId == taskId && !t.IsDeleted);
+            var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.UserId == userId && t.TaskId == taskId /*&& !t.IsDeleted*/);
             return task == null ? null : task;
         }
 

@@ -1077,7 +1077,7 @@ namespace Tazzker.Client.Services
 		private async Task SyncEntity<T>(string store, string endpoint) where T : class, ISyncable
 		{
 			var items = await _db.GetAllAsync<T>(store);
-			var unsynced = items.Where(x => !x.IsSynced && !x.IsDeleted).ToList();
+			var unsynced = items.Where(x => !x.IsSynced /*&& !x.IsDeleted*/ && !x.PermDeleted).ToList();
 			if (unsynced.Count == 0) return;
 
 			var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
@@ -1124,7 +1124,7 @@ namespace Tazzker.Client.Services
 		private async Task SyncPermDeleted<T>(string store, string endpoint) where T : class, ISyncable
 		{
 			var items = await _db.GetAllAsync<T>(store);
-			var toDelete = items.Where(x => x.IsDeleted && x.PermDeleted).Select(x => x.Id.ToString()).ToList();
+			var toDelete = items.Where(x => /*x.IsDeleted &&*/ x.PermDeleted).Select(x => x.Id.ToString()).ToList();
 			if (toDelete.Count == 0) return;
 
 			var request = new HttpRequestMessage(HttpMethod.Post, endpoint)

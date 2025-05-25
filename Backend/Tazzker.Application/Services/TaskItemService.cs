@@ -30,7 +30,7 @@ namespace Tazzker.Application.Services
                 DueTime = task.DueTime,
                 ReminderAt = task.ReminderAt,
                 UpdatedAt = task.UpdatedAt,
-                IsDeleted = task.IsDeleted,
+                //IsDeleted = task.IsDeleted,
                 IsCompleted = task.IsCompleted,
                 ListId = task.ListId,
                 ParentTaskId = task.ParentTaskId,
@@ -124,8 +124,8 @@ namespace Tazzker.Application.Services
                 task.ReminderAt = dto.ReminderAt.Value;
             if (dto.IsCompleted.HasValue)
                 task.IsCompleted = dto.IsCompleted.Value;
-            if (dto.IsDeleted.HasValue)
-                task.IsDeleted = dto.IsDeleted.Value;
+            //if (dto.IsDeleted.HasValue)
+                //task.IsDeleted = dto.IsDeleted.Value;
             if (dto.Order.HasValue)
                 task.Order = dto.Order.Value;
             if (dto.UpdatedAt.HasValue)

@@ -23,7 +23,7 @@ namespace Tazzker.Application.Services
                 Title = list.Title,
                 UpdatedAt = list.UpdatedAt,
                 CreatedAt = list.CreatedAt,
-                IsDeleted = list.IsDeleted,
+                //IsDeleted = list.IsDeleted,
                 AssignedDay = list.AssignedDay
             };
         }
@@ -39,7 +39,7 @@ namespace Tazzker.Application.Services
                 Title = listDTO.Title,
                 ListId = listDTO.ListId,
                 CreatedAt = listDTO.CreatedAt,
-                IsDeleted = listDTO.IsDeleted,
+                //IsDeleted = listDTO.IsDeleted,
                 AssignedDay = listDTO.AssignedDay,
                 UpdatedAt = listDTO.UpdatedAt
             };

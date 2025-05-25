@@ -25,6 +25,6 @@ namespace Tazzker.Domain
         public DateTime? DueTime { get; set; }
 
         public bool IsCompleted { get; set; }
-        public bool IsDeleted { get; set; }
+        //public bool IsDeleted { get; set; }
     }
 }

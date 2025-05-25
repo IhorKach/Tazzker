@@ -238,14 +238,13 @@ namespace Tazzker.Application.Services
 
         public async Task<bool> UserRegisterAsync(HttpContext context, UserCreateDto dto)
         {
-            if (await _userRepository.GetByUsernameAsync(dto.Username) != null ||
-                await _userRepository.GetByEmailAsync(dto.Email) != null)
+            if (await _userRepository.GetByUsernameAsync(dto.Username) != null /*|| await _userRepository.GetByEmailAsync(dto.Email) != null*/)
                 return false;
 
             var user = new User
             {
                 Username = dto.Username,
-                Email = dto.Email,
+                //Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
             };
 

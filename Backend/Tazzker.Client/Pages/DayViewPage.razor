@@ -9,9 +9,10 @@
 
 
 <!-- Верхняя панель навигации -->
-<div class="p-4 mb-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20">
+@* <div class="p-4 mb-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20"> *@
+<div class="p-4 mb-4 bg-yellow-50 border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20">
 	@{
-		var backLable = "< Назад";
+		var backLable = "< Back";
 	}
 	<button @onclick="GoBack"
 			class="text-yellow-600  hover:text-yellow-800 font-semibold text-sm">
@@ -29,11 +30,11 @@
 
 	<!-- Задачи на день -->
 	<section class="space-y-3">
-		<h3 class="text-lg font-semibold text-yellow-700">📋 Задачи на день</h3>
+		<h3 class="text-lg font-semibold text-yellow-700">📋 Today's Tasks</h3>
 
 		@if (dayTasks.Count == 0)
 		{
-			<div class="text-gray-400 italic">Пока нет задач. Наслаждайся свободой ☀️</div>
+			<div class="text-gray-400 text-center italic">No tasks yet.</div>
 		}
 		else
 		{
@@ -83,6 +84,6 @@
 
 		dayTasks = allTasks
 			// .Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted).OrderBy(t => t.Order).ToList();
-			.Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted).OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Order).ToList();
+			.Where(t => t.DueTime?.Date == date.Date && !t.PermDeleted/* IsDeleted */).OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Order).ToList();
 	}
 }

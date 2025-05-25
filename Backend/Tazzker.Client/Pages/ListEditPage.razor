@@ -12,16 +12,17 @@
 {
 
 	<!-- Навигация -->
-	<div class="p-4 mb-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20">
+	@* <div class="p-4 mb-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20"> *@
+	<div class="p-4 mb-4 bg-yellow-50 border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20">
 		@{
-			var backLabel = "< Назад";
+			var backLabel = "< Back";
 		}
 		<button @onclick="GoBack"
 				class="text-yellow-600  hover:text-yellow-800 font-semibold text-sm">
 			@backLabel
 		</button>
 		<span class="text-xs text-gray-400 italic">
-			Последнее обновление: @GetLastUpdate().ToLocalTime().ToString("g")
+			Last updated: @GetLastUpdate().ToLocalTime().ToString("g")
 		</span>
 	</div>
 

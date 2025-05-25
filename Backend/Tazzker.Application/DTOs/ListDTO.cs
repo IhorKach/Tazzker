@@ -11,6 +11,6 @@ namespace Tazzker.Application.DTOs
         public DateTime UpdatedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? AssignedDay { get; set; }
-        public bool IsDeleted { get; set; }
+        //public bool IsDeleted { get; set; }
     }
 }

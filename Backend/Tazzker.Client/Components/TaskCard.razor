@@ -2,9 +2,9 @@
 
 @if (TaskItem != null)
 {
-	<div class="flex items-start gap-2 p-3 rounded-xl bg-white shadow border border-yellow-400 w-full relative">
+	<div class="flex items-start gap-2 p-3 rounded-xl bg-white shadow border border-yellow-400 w-full relative @(TaskItem?.IsCompleted == true ? " opacity-50" : "")">
 		<!-- Чекбокс -->
-		<input type="checkbox" class="mt-1 accent-yellow-500 w-5 h-5 shrink-0" checked="@TaskItem.IsCompleted" @onchange="ToggleCompleted" />
+		<input type="checkbox" class="mt-1 accent-yellow-500 w-5 h-5 shrink-0" checked="@TaskItem!.IsCompleted" @onchange="ToggleCompleted" />
 
 		<!-- Многострочный текст -->
 		@if (editMode)
@@ -17,22 +17,25 @@
 					  onfocus="this.style.height='auto';this.style.height=this.scrollHeight + 'px';"
 					  class="flex-grow resize-none overflow-hidden border-none bg-transparent focus:outline-none text-sm text-gray-800 leading-snug break-words"
 					  rows="1"
-					  style="height:auto"
-					  placeholder="Введите задачу...">
+					  style="height:auto">
 									</textarea>
 		}
 		else
 		{
-			@* <div class="flex-grow text-sm text-gray-800 leading-snug break-words cursor-pointer"
-				 @onclick="EnableEdit">
-				@TaskItem.Title
-			</div> *@
-			<div class="flex-grow text-sm text-gray-800 leading-snug cursor-pointer
+			@*//last good one
+				<div class="flex-grow text-sm text-gray-800 leading-snug cursor-pointer
              break-all whitespace-break-spaces overflow-hidden"
 				 style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;"
 				 @onclick="EnableEdit">
 				@TaskItem.Title
+			</div> *@
+			<div class="flex-grow text-sm leading-snug cursor-pointer break-all whitespace-break-spaces overflow-hidden
+            @(TaskItem?.IsCompleted == true ? " text-gray-400 line-through" : " text-gray-800")"
+				 @onclick="EnableEdit">
+				@TaskItem.Title
 			</div>
+
+
 		}
 		<button @onclick="ToggleDatePicker"
 				class="text-sm px-2 py-1 rounded hover:bg-gray-100 transition">
@@ -51,18 +54,18 @@
 
 				<input type="date"
 					   class="w-full border px-2 py-1 rounded text-sm"
-					   value="@(TaskItem.DueTime?.ToString("yyyy-MM-dd"))"
+					   value="@(TaskItem!.DueTime?.ToString("yyyy-MM-dd"))"
 					   @onchange="AssignDate" />
 
 				<div class="flex justify-between mt-2">
 					<button @onclick="ClearDate"
 							class="text-sm text-red-600 hover:text-red-800">
-						🗑 Убрать дату
+						🗑 Remove date
 					</button>
 
 					<button @onclick="() => showDatePicker = false"
 							class="text-sm text-gray-600 hover:text-gray-800">
-						✖ Закрыть
+						✖ Close
 					</button>
 				</div>
 			</div>
@@ -113,7 +116,7 @@
 	private async Task DeleteTask()
 	{
 		if (TaskItem == null) return;
-		TaskItem.IsDeleted = true;
+		// TaskItem.IsDeleted = true;
 		TaskItem.IsSynced = false;
 		TaskItem.PermDeleted = true;
 		await OnChanged.InvokeAsync(TaskItem);

@@ -11,7 +11,7 @@ namespace Tazzker.Domain
         public string Title { get; set; } = null!;
         public DateTime UpdatedAt { get; set; }
         public float Order { get; set; }
-        public bool IsDeleted { get; set; }
+        //public bool IsDeleted { get; set; }
 
     }
 }

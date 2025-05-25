@@ -29,7 +29,7 @@ namespace Tazzker.Application.DTOs
         public DateTime? ReminderAt { get; set; }
         public DateTime? DueTime { get; set; }
         public bool IsCompleted { get; set; }
-        public bool IsDeleted { get; set; }
+        //public bool IsDeleted { get; set; }
         public float Order { get; set; }
     }
 
@@ -44,7 +44,7 @@ namespace Tazzker.Application.DTOs
         public DateTime? ReminderAt { get; set; }
         public DateTime? DueTime { get; set; }
         public bool? IsCompleted { get; set; }
-        public bool? IsDeleted { get; set; }
+        //public bool? IsDeleted { get; set; }
         public float? Order { get; set; }
     }
     public class TaskItemFilterDto
@@ -73,6 +73,6 @@ namespace Tazzker.Application.DTOs
         public DateTime? DueTime;
 
         public bool IsCompleted;
-        public bool IsDeleted;
+        //public bool IsDeleted;
     }
 }

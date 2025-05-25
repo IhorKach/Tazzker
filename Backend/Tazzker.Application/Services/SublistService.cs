@@ -23,7 +23,7 @@ namespace Tazzker.Application.Services
                 Title = sublist.Title,
                 Order = sublist.Order,
                 UpdatedAt = sublist.UpdatedAt,
-                IsDeleted = sublist.IsDeleted
+                //IsDeleted = sublist.IsDeleted
             };
         }
 
@@ -37,7 +37,7 @@ namespace Tazzker.Application.Services
             {
                 UserId = _userContext.UserId,
                 SublistId = sublistDTO.SublistId,
-                IsDeleted = sublistDTO.IsDeleted,
+                //IsDeleted = sublistDTO.IsDeleted,
                 ListId = sublistDTO.ListId,
                 Order = sublistDTO.Order,
                 Title = sublistDTO.Title,

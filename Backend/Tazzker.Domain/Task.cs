@@ -13,7 +13,7 @@ namespace Tazzker.Domain
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
         public bool IsCompleted { get; set; }
-        public bool IsDeleted { get; set; }
+        //public bool IsDeleted { get; set; }
         
         public DateTime UpdatedAt { get; set; }
         public DateTime? ReminderAt { get; set; }

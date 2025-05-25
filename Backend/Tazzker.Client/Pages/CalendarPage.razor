@@ -11,7 +11,7 @@
 
 
 <h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
-	📅 Календарь
+	📅 Calendar
 </h2>
 <!-- Trick for Tailwind purge -->
 <div class="hidden border-yellow-500 border-2 rounded"></div>
@@ -59,7 +59,8 @@
 
 	<!-- Сетка дней недели -->
 	<div class="grid grid-cols-7 text-center font-semibold text-yellow-700">
-		<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+	@* 	<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div> *@
+		<div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
 	</div>
 
 	<!-- Сетка дней месяца -->
@@ -111,7 +112,7 @@
 		var allTasks = await App.GetAllTasks();
 
 		taskMap = allTasks
-			.Where(t => t.DueTime.HasValue && !t.IsDeleted)
+			.Where(t => t.DueTime.HasValue && !t.PermDeleted/* IsDeleted */)
 			.GroupBy(t => t.DueTime!.Value.Date)
 			.ToDictionary(g => g.Key, g => g.ToList());
 

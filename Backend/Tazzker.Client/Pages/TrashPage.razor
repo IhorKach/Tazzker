@@ -96,8 +96,8 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		trashTasks = (await TaskDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
-		trashNotes = (await NoteDb.GetAllRawAsync()).Where(t => t.IsDeleted && !t.PermDeleted).ToList();
+		trashTasks = (await TaskDb.GetAllRawAsync()).Where(t =>/*  t.IsDeleted && ! */t.PermDeleted).ToList();
+		trashNotes = (await NoteDb.GetAllRawAsync()).Where(t => /* t.IsDeleted && ! */t.PermDeleted).ToList();
 	}
 
 	async Task RestoreTask(Guid id) => await Restore(trashTasks, id, TaskDb);
@@ -111,7 +111,7 @@
 		var item = list.FirstOrDefault(x => x.Id == id);
 		if (item is null) return;
 
-		item.IsDeleted = false;
+		// item.IsDeleted = false;
 		item.IsSynced = false;
 		await db.AddOrUpdateAsync(item);
 		list.Remove(item);

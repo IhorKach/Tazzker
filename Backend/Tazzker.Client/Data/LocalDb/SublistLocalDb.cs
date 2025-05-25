@@ -17,7 +17,7 @@ namespace Tazzker.Client.Data.LocalDb
 		public async Task<List<SublistModel>> GetAllAsync()
 		{
 			var all = await _db.GetAllAsync<SublistModel>(StoreName);
-			return all.Where(x => !x.IsDeleted).OrderBy(x => x.Order).ToList();
+			return all.Where(x => !x.PermDeleted/*IsDeleted*/).OrderBy(x => x.Order).ToList();
 		}
 
 		public async Task<SublistModel?> GetByIdAsync(Guid id)
@@ -39,7 +39,7 @@ namespace Tazzker.Client.Data.LocalDb
 			if (sublist is null) return;
 
 			sublist.PermDeleted = true;
-			sublist.IsDeleted = true;
+			//sublist.IsDeleted = true;
 
 			await AddOrUpdateAsync(sublist);
 		}

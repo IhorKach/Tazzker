@@ -7,32 +7,35 @@
 @inject ModelMethods App
 @inject SyncService SyncServ
 
-<div class="min-h-screen flex flex-col">
+ @* <div class="min-h-screen flex flex-col"> *@
 
 
-	<h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20">
-		📥 Инбокс
+	 @* <h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20"> *@
+<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow mb-4">
+		📥 Inbox
 	</h2>
 
+
 	<!-- Контент -->
-	<main class="px-4 py-6 space-y-6">
+	@* <main class="px-4 py-6 space-y-6"> *@
 		@if (tasks.Count == 0)
 		{
-			<div class="text-gray-500 italic mt-6">Нет задач в инбоксе 🐝</div>
+			<div class="text-center text-gray-400 italic mt-8">No tasks yet.</div>
 		}
 		else
 		{
 			<div class="space-y-4">
+			@* <div> *@
 				@foreach (var task in tasks)
 				{
 					<TaskCard TaskItem="task" OnChanged="SaveTask" />
 				}
 			</div>
 		}
-	</main>
+@* 	</main> *@
 
 <StickyAddButton OnClick="AddTask"></StickyAddButton>
-</div>
+@* </div> *@
 
 
 
@@ -56,7 +59,7 @@
 	{
 		var allTasks = await App.GetAllTasks();
 		// tasks = allTasks.Where(t => t.SublistId == null && !t.IsDeleted).OrderByDescending(t => t.UpdatedAt).ToList();
-		tasks = allTasks.Where(t => t.SublistId == null && !t.IsDeleted).OrderBy(t=>t.IsCompleted).ThenByDescending(t => t.Order).ToList();
+		tasks = allTasks.Where(t => t.SublistId == null && !t.PermDeleted/* IsDeleted */).OrderBy(t=>t.IsCompleted).ThenByDescending(t => t.Order).ToList();
 	}
 
 

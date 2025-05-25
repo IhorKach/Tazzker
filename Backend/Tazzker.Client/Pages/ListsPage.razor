@@ -8,14 +8,15 @@
 @inject SyncService SyncServ
 
 
-<h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20">
-	📂 Списки
+ @* <h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20"> *@
+<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow mb-4">
+	📂 Lists
 </h2>
 
 
 @if (lists.Count == 0)
 {
-	<div class="text-center text-gray-400 italic mt-8">У вас пока нет списков 🐝</div>
+	<div class="text-center text-gray-400 italic mt-8">No lists yet.</div>
 }
 else
 {
@@ -28,7 +29,7 @@ else
 }
 
 
-<ConfirmDialog Message="Удалить список со всем содержимым?"
+<ConfirmDialog Message="Delete the list and all its contents?"
 			   Show="@showConfirmModal"
 			   OnConfirm="HandleConfirmDelete" />
 

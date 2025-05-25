@@ -22,7 +22,7 @@
 
 			<h3 class="text-lg font-semibold text-yellow-800 break-words mr-2">@ListItem.Title</h3>
 			<button class="text-red-500 hover:text-red-700 font-bold px-1"
-					title="Удалить"
+					title="Delete"
 			@onclick:stopPropagation
 					@onclick="() => OnDelete.InvokeAsync(ListItem.Id)">
 				Х
@@ -32,7 +32,21 @@
 		<!-- Дата + кол-во задач -->
 		<div class="flex justify-between text-xs text-gray-500 italic">
 			<span>Обновлено: @ListItem.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")</span>
-			<span>@TasksAmount задач</span>
+			@{
+				switch (TasksAmount)
+				{
+					case 0:
+						tasksAmountTitle = "No tasks yet.";
+						break;
+					case 1:
+						tasksAmountTitle = $"{TasksAmount} task.";
+						break;
+					default:
+						tasksAmountTitle = $"{TasksAmount} tasks.";
+						break;
+				}
+			}
+			<span>@tasksAmountTitle</span>
 		</div>
 	</div>
 }
@@ -43,6 +57,8 @@
 	[Parameter] public ListModel? ListItem { get; set; }
 	[Parameter] public EventCallback<Guid> OnClick { get; set; }
 	[Parameter] public int TasksAmount { get; set; }
-	[Parameter] public DateTime LastUpdate {get; set;}
+	[Parameter] public DateTime LastUpdate { get; set; }
 	[Parameter] public EventCallback<Guid> OnDelete { get; set; }
+
+	private string tasksAmountTitle = "";
 }
