@@ -1,6 +1,79 @@
 ﻿@using Tazzker.Client.Services
 @inject SyncService SyncService
 @inject SyncStatusService SyncStatus
+@inject IJSRuntime JS
+@implements IDisposable
+
+@code {
+    private Timer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SyncStatus.Status = SyncState.Idle;
+
+        await Task.Delay(500);
+        await TrySync();
+
+        _timer = new Timer(async _ => await TrySync(), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+    }
+
+    private async Task TrySync()
+    {
+        var isOnline = await JS.InvokeAsync<bool>("isOnline");
+        if (!isOnline)
+        {
+            Console.WriteLine("🌐 Нет подключения — пропускаем синхронизацию");
+            return;
+        }
+
+        var isLoggedIn = await JS.InvokeAsync<string>("localStorage.getItem", "isLoggedIn");
+        if (isLoggedIn != "true")
+        {
+            Console.WriteLine("🚫 Пользователь не вошел — синхронизация отменена");
+            return;
+        }
+
+        try
+        {
+            SyncStatus.Status = SyncState.Syncing;
+            await SyncService.TrySyncEverythingAsync();
+            SyncStatus.Status = SyncState.Synced;
+            await Task.Delay(1000);
+        }
+        catch (Exception ex)
+        {
+            SyncStatus.Status = SyncState.Error;
+            Console.WriteLine($"❌ Sync failed: {ex.Message}");
+            await Task.Delay(3000);
+        }
+        finally
+        {
+            SyncStatus.Status = SyncState.Idle;
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+@*
+//last stable version    
+
+@using Tazzker.Client.Services
+@inject SyncService SyncService
+@inject SyncStatusService SyncStatus
 @implements IDisposable
 
 @code {
@@ -18,11 +91,16 @@
         _timer = new Timer(async _ => await TrySync(), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
     }
 
-
     private async Task TrySync()
     {
         try
         {
+            if (!await SyncService.IsAuthenticatedAsync())
+            {
+                Console.WriteLine("⛔ Пользователь не авторизован — синхронизация отменена");
+                return;
+            }
+
             SyncStatus.Status = SyncState.Syncing;
 
             await SyncService.SyncAllAsync();
@@ -30,28 +108,60 @@
             await SyncService.PullAllAsync();
 
             SyncStatus.Status = SyncState.Synced;
-
-            // Подождать чуть-чуть, показать галочку ✅
             await Task.Delay(1000);
-
-            SyncStatus.Status = SyncState.Idle;
         }
         catch (Exception ex)
         {
             SyncStatus.Status = SyncState.Error;
-            Console.WriteLine($"Sync failed: {ex.Message}");
-
-            // Ошибку чуть дольше показываем
+            Console.WriteLine($"❌ Sync failed: {ex.Message}");
             await Task.Delay(3000);
+        }
+        finally
+        {
             SyncStatus.Status = SyncState.Idle;
         }
     }
-
-
-
 
     public void Dispose()
     {
         _timer?.Dispose();
     }
+
 }
+ *@
+
+
+
+
+
+
+@* 
+//old method -to be deleted
+    
+// private async Task TrySync()
+    // {
+    //     try
+    //     {
+    //         SyncStatus.Status = SyncState.Syncing;
+
+    //         await SyncService.SyncAllAsync();
+    //         await SyncService.SyncHardDeletedAsync();
+    //         await SyncService.PullAllAsync();
+
+    //         SyncStatus.Status = SyncState.Synced;
+
+    //         Подождать чуть-чуть, показать галочку ✅
+    //         await Task.Delay(1000);
+
+    //         SyncStatus.Status = SyncState.Idle;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         SyncStatus.Status = SyncState.Error;
+    //         Console.WriteLine($"Sync failed: {ex.Message}");
+
+    //         Ошибку чуть дольше показываем
+    //         await Task.Delay(3000);
+    //         SyncStatus.Status = SyncState.Idle;
+    //     }
+    // } *@

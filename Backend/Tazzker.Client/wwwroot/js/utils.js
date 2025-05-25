@@ -20,3 +20,58 @@ window.checkIndexedDbStores = async function (dbName) {
         };
     });
 };
+
+
+window.focusAndMoveCursorToEnd = function (el) {
+    if (!el) return;
+    el.focus();
+    const val = el.value;
+    el.value = '';
+    el.value = val; // хак чтобы курсор прыгнул в конец
+};
+
+window.noteInterop = {
+    getContent: function (selector) {
+        const el = document.querySelector(selector);
+        return el ? el.innerText : "";
+    },
+
+    setContent: function (selector, content) {
+        const el = document.querySelector(selector);
+        if (el) el.innerText = content;
+    },
+    preventLastInput: function (el) {
+        let text = el.innerText;
+        el.innerText = text.substring(0, text.length - 1);
+
+        let range = document.createRange();
+        let sel = window.getSelection();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+};
+
+
+window.isOnline = () => navigator.onLine;
+
+
+
+window.resizeTextareas = () => {
+    console.log('[resizeTextareas] вызвана');
+
+    const elements = document.querySelectorAll('textarea');
+    console.log(`[resizeTextareas] найдено ${elements.length} textarea`);
+
+    elements.forEach(el => {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    });
+};
+
+
+
+
+

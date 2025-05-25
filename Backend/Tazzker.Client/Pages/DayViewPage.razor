@@ -1,371 +1,88 @@
-﻿@* 
- @page "/calendar/{date:datetime}"
-@using Tazzker.Client.Data.Models
-@using Tazzker.Client.Interfaces
-@using System.Globalization
-@inject ILocalDb<TaskModel> TaskDb
-@inject NavigationManager Nav
-@using Tazzker.Client.Components
-
-<h2 class="text-2xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
-    @date.ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)
-</h2>
-
-<div class="px-4 py-6 space-y-4">
-    <button class="text-yellow-700 hover:text-yellow-900" @onclick="GoBack">← Назад к календарю</button>
-
-    <div class="space-y-2">
-        <h3 class="text-lg font-semibold text-yellow-700">Задачи на день</h3>
-
-        @if (dayTasks.Count == 0)
-        {
-            <div class="text-gray-500">Нет задач на этот день.</div>
-        }
-        else
-        {
-            <ul class="space-y-2">
-                @foreach (var task in dayTasks)
-                {
-                    <li class="flex items-center bg-yellow-50 rounded p-2 shadow-sm">
-                        <input type="checkbox"
-                               @bind="task.IsCompleted"
-                               @bind:after="() => SaveTask(task)"
-                               class="mr-2" />
-
-                        <span class="flex-grow cursor-pointer" @onclick="() => EditTask(task.TaskId)">
-                            @task.Title
-                        </span>
-
-                        <button @onclick="() => DeleteTask(task.TaskId)"
-                        @onclick:stopPropagation
-                                class="ml-2 text-red-500 hover:text-red-700">
-                            ✕
-                        </button>
-                    </li>
-                }
-            </ul>
-        }
-    </div>
-
-    <div class="mt-6">
-        <h3 class="text-lg font-semibold text-yellow-700 mb-2">Добавить задачу</h3>
-        <input type="text" class="border border-yellow-300 rounded px-3 py-1 w-full mb-2" placeholder="Заголовок задачи" @bind="newTaskTitle" />
-        <textarea class="border border-yellow-300 rounded px-3 py-1 w-full mb-2" placeholder="Описание (необязательно)" @bind="newTaskDescription"></textarea>
-        <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded shadow w-full" @onclick="AddTask">
-            ➕ Добавить задачу
-        </button>
-    </div>
-</div>
-
-@code {
-    [Parameter] public DateTime date { get; set; }
-
-    private List<TaskModel> dayTasks = new();
-    private string newTaskTitle = string.Empty;
-    private string newTaskDescription = string.Empty;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var allTasks = await TaskDb.GetAllAsync();
-        dayTasks = allTasks
-            .Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted)
-            .OrderBy(t => t.Order)
-            .ToList();
-    }
-
-    void GoBack()
-    {
-        Nav.NavigateTo("/calendar");
-    }
-
-    void EditTask(Guid taskId)
-    {
-        Nav.NavigateTo($"/task/{taskId}");
-    }
-
-    async Task AddTask()
-    {
-        if (!string.IsNullOrWhiteSpace(newTaskTitle))
-        {
-            var newTask = new TaskModel
-                {
-                    Title = newTaskTitle,
-                    Description = newTaskDescription,
-                    DueTime = date,
-                    Order = dayTasks.Count + 1
-                };
-
-            await TaskDb.AddOrUpdateAsync(newTask);
-            dayTasks.Add(newTask);
-            newTaskTitle = string.Empty;
-            newTaskDescription = string.Empty;
-        }
-    }
-
-    async Task SaveTask(TaskModel task)
-    {
-        await TaskDb.AddOrUpdateAsync(task);
-    }
-
-    async Task DeleteTask(Guid taskId)
-    {
-        var task = dayTasks.FirstOrDefault(t => t.TaskId == taskId);
-        if (task is not null)
-        {
-            task.IsDeleted = true;
-            await TaskDb.AddOrUpdateAsync(task);
-            dayTasks.Remove(task);
-        }
-    }
-}
- *@
-@* 
- @page "/calendar/{date:datetime}"
-@using Tazzker.Client.Data.Models
-@using Tazzker.Client.Interfaces
-@using System.Globalization
-@inject ILocalDb<TaskModel> TaskDb
-@inject NavigationManager Nav
-@using Tazzker.Client.Components
-
-<h2 class="text-2xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
-    @date.ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)
-</h2>
-
-<div class="px-4 py-6 space-y-4">
-    <button class="text-yellow-700 hover:text-yellow-900" @onclick="GoBack">← Назад к календарю</button>
-
-    <div class="space-y-2">
-        <h3 class="text-lg font-semibold text-yellow-700">Задачи на день</h3>
-
-        @if (dayTasks.Count == 0)
-        {
-            <div class="text-gray-500">Нет задач на этот день.</div>
-        }
-        else
-        {
-            <ul class="space-y-2">
-                @foreach (var task in dayTasks)
-                {
-                    <li class="flex items-center bg-yellow-50 rounded p-2 shadow-sm">
-                        <input type="checkbox"
-                               @bind="task.IsCompleted"
-                               @bind:after="() => SaveTask(task)"
-                               class="mr-2" />
-
-                        <span class="flex-grow cursor-pointer" @onclick="() => selectedTask = task">
-                            @task.Title
-                        </span>
-
-                        <button @onclick="() => DeleteTask(task.TaskId)"
-                                @onclick:stopPropagation
-                                class="ml-2 text-red-500 hover:text-red-700">
-                            ✕
-                        </button>
-                    </li>
-                }
-            </ul>
-        }
-    </div>
-
-    <div class="mt-6">
-        <h3 class="text-lg font-semibold text-yellow-700 mb-2">Добавить задачу</h3>
-        <input type="text" class="border border-yellow-300 rounded px-3 py-1 w-full mb-2" placeholder="Заголовок задачи" @bind="newTaskTitle" />
-        <textarea class="border border-yellow-300 rounded px-3 py-1 w-full mb-2" placeholder="Описание (необязательно)" @bind="newTaskDescription"></textarea>
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded" @onclick="AddTask">Добавить</button>
-    </div>
-</div>
-
-
-<TaskPanel Task="selectedTask"
-           OnSave="@(task => SaveTask(task))"
-           OnDelete="@(id => DeleteTask(id))"
-           Close="@(() => selectedTask = null)" />
-
-
-@code {
-    [Parameter] public DateTime date { get; set; }
-
-    private List<TaskModel> dayTasks = new();
-    private string newTaskTitle = string.Empty;
-    private string newTaskDescription = string.Empty;
-    private TaskModel? selectedTask;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var allTasks = await TaskDb.GetAllAsync();
-        dayTasks = allTasks
-            .Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted)
-            .OrderBy(t => t.Order)
-            .ToList();
-    }
-
-    void GoBack()
-    {
-        Nav.NavigateTo("/calendar");
-    }
-
-    void CloseModal()
-    {
-        selectedTask = null;
-    }
-
-    async Task SaveTask(TaskModel task)
-    {
-        await TaskDb.AddOrUpdateAsync(task);
-        task.UpdatedAt = DateTime.UtcNow;
-        selectedTask = null;
-    }
-
-    async Task DeleteTask(Guid taskId)
-    {
-        await TaskDb.SoftDeleteAsync(taskId);
-        dayTasks.RemoveAll(t => t.TaskId == taskId);
-        selectedTask = null;
-    }
-
-    async Task AddTask()
-    {
-        if (!string.IsNullOrWhiteSpace(newTaskTitle))
-        {
-            var newTask = new TaskModel
-            {
-                Title = newTaskTitle,
-                Description = newTaskDescription,
-                DueTime = date,
-                Order = dayTasks.Count + 1
-            };
-
-            await TaskDb.AddOrUpdateAsync(newTask);
-            dayTasks.Add(newTask);
-            newTaskTitle = string.Empty;
-            newTaskDescription = string.Empty;
-        }
-    }
-} *@
-@page "/calendar/{date:datetime}"
+﻿@page "/calendar/{date:datetime}"
  @using Tazzker.Client.Components
 @using Tazzker.Client.Data.Models
-@using Tazzker.Client.Interfaces
 @using System.Globalization
-@inject ILocalDb<TaskModel> TaskDb
+@using Tazzker.Client.Services
 @inject NavigationManager Nav
+@inject ModelMethods App
+@inject SyncService SyncServ
 
-<h2 class="text-2xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
-    @date.ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)
-</h2>
 
-<div class="px-4 py-6 space-y-4">
-    <button class="text-yellow-700 hover:text-yellow-900" @onclick="GoBack">← Назад к календарю</button>
-
-    <div class="space-y-2">
-        <h3 class="text-lg font-semibold text-yellow-700">Задачи на день</h3>
-
-        @if (dayTasks.Count == 0)
-        {
-            <div class="text-gray-500">Нет задач на этот день.</div>
-        }
-        else
-        {
-            <ul class="space-y-2">
-                @foreach (var task in dayTasks)
-                {
-                    <li class="flex items-center bg-yellow-50 rounded p-2 shadow-sm">
-                        <input type="checkbox"
-                               @bind="task.IsCompleted"
-                               @bind:after="() => SaveTask(task)"
-                               class="mr-2" />
-
-                        <span class="flex-grow cursor-pointer" @onclick="() => selectedTask = task">
-                            @task.Title
-                        </span>
-
-                        <button @onclick="() => DeleteTask(task.Id)"
-                        @onclick:stopPropagation
-                                class="ml-2 text-red-500 hover:text-red-700">
-                            ✕
-                        </button>
-                    </li>
-                }
-            </ul>
-        }
-    </div>
-
-    <div class="mt-6">
-        <h3 class="text-lg font-semibold text-yellow-700 mb-2">Добавить задачу</h3>
-        <input type="text" class="border border-yellow-300 rounded px-3 py-1 w-full mb-2" placeholder="Заголовок задачи" @bind="newTaskTitle" />
-        <textarea class="border border-yellow-300 rounded px-3 py-1 w-full mb-2" placeholder="Описание (необязательно)" @bind="newTaskDescription"></textarea>
-        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded" @onclick="AddTask">Добавить</button>
-    </div>
+<!-- Верхняя панель навигации -->
+<div class="p-4 mb-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20">
+	@{
+		var backLable = "< Назад";
+	}
+	<button @onclick="GoBack"
+			class="text-yellow-600  hover:text-yellow-800 font-semibold text-sm">
+		@backLable
+	</button>
 </div>
 
-<TaskPanel Task="selectedTask"
-           OnSave="SaveTask"
-           OnDelete="DeleteTask"
-           Close="CloseModal" />
+<!-- Заголовок дня -->
+<h2 class="text-2xl sm:text-3xl font-bold text-yellow-800 text-center mb-6">
+	@date.ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)
+</h2>
+
+<!-- Контент -->
+<div class="px-4 py-6 space-y-6">
+
+	<!-- Задачи на день -->
+	<section class="space-y-3">
+		<h3 class="text-lg font-semibold text-yellow-700">📋 Задачи на день</h3>
+
+		@if (dayTasks.Count == 0)
+		{
+			<div class="text-gray-400 italic">Пока нет задач. Наслаждайся свободой ☀️</div>
+		}
+		else
+		{
+			<ul class="space-y-2">
+				@foreach (var task in dayTasks)
+				{
+					<TaskCard TaskItem="task" OnChanged="SaveTask" />
+				}
+			</ul>
+		}
+	</section>
+
+	<!-- кнопка добавления задачи -->
+	<StickyAddButton OnClick="AddTask" />
+
+</div>
+
 
 @code {
-    [Parameter] public DateTime date { get; set; }
+	[Parameter] public DateTime date { get; set; }
 
-    private List<TaskModel> dayTasks = new();
-    private string newTaskTitle = string.Empty;
-    private string newTaskDescription = string.Empty;
-    private TaskModel? selectedTask;
+	private List<TaskModel> dayTasks = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await RefreshTasks();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		SyncServ.OnSynced += Refresh;
+		await Refresh();
+	}
 
-    void GoBack()
-    {
-        Nav.NavigateTo("/calendar");
-    }
+	void GoBack() => Nav.NavigateTo("/calendar");
 
-    void CloseModal()
-    {
-        selectedTask = null;
-    }
+	async Task SaveTask(TaskModel task)
+	{
+		await App.SaveTask(task);
+		await Refresh();
+	}
 
-    async Task SaveTask(TaskModel task)
-    {
-        task.UpdatedAt = DateTime.UtcNow;
-        await TaskDb.AddOrUpdateAsync(task);
-        await RefreshTasks();
-    }
+	async Task AddTask()
+	{
+		await App.AddTask(null, date);
+		await Refresh();
+	}
 
-    async Task DeleteTask(Guid taskId)
-    {
-        await TaskDb.SoftDeleteAsync(taskId);
-        await RefreshTasks();
-        selectedTask = null;
-    }
+	private async Task Refresh()
+	{
+		var allTasks = await App.GetAllTasks();
 
-    async Task AddTask()
-    {
-        if (!string.IsNullOrWhiteSpace(newTaskTitle))
-        {
-            var newTask = new TaskModel
-                {
-                    Title = newTaskTitle,
-                    Description = newTaskDescription,
-                    DueTime = date,
-                    Order = dayTasks.Count + 1
-                };
-
-            await TaskDb.AddOrUpdateAsync(newTask);
-            newTaskTitle = string.Empty;
-            newTaskDescription = string.Empty;
-            await RefreshTasks();
-        }
-    }
-
-    private async Task RefreshTasks()
-    {
-        var allTasks = await TaskDb.GetAllAsync();
-        dayTasks = allTasks
-            .Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted)
-            .OrderBy(t => t.Order)
-            .ToList();
-    }
+		dayTasks = allTasks
+			// .Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted).OrderBy(t => t.Order).ToList();
+			.Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted).OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Order).ToList();
+	}
 }

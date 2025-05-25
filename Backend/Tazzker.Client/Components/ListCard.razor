@@ -1,0 +1,48 @@
+﻿@using Tazzker.Client.Data.Models;
+@* @if (ListItem != null)
+{
+	<div class="bg-white rounded-xl p-4 shadow border border-yellow-300 hover:shadow-md transition cursor-pointer"
+		 @onclick="() => OnClick.InvokeAsync(ListItem.Id)">
+		<div class="flex justify-between items-start mb-2">
+			<h3 class="text-lg font-semibold text-yellow-800 truncate">@ListItem.Title</h3>
+			<span class="text-xs text-gray-500 whitespace-nowrap">@TasksAmount задач</span>
+		</div>
+		<p class="text-sm text-gray-600 italic">Обновлено: @ListItem.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")</p>
+	</div>
+} *@
+
+@if (ListItem != null)
+{
+	<div class="bg-white rounded-xl p-4 shadow border border-yellow-300 hover:shadow-md transition cursor-pointer"
+		 @onclick="() => OnClick.InvokeAsync(ListItem.Id)">
+
+		<!-- Заголовок + Крестик -->
+		<div class="flex justify-between items-start mb-2"
+			 style="word-break: break-word; overflow-wrap: anywhere;">
+
+			<h3 class="text-lg font-semibold text-yellow-800 break-words mr-2">@ListItem.Title</h3>
+			<button class="text-red-500 hover:text-red-700 font-bold px-1"
+					title="Удалить"
+			@onclick:stopPropagation
+					@onclick="() => OnDelete.InvokeAsync(ListItem.Id)">
+				Х
+			</button>
+		</div>
+
+		<!-- Дата + кол-во задач -->
+		<div class="flex justify-between text-xs text-gray-500 italic">
+			<span>Обновлено: @ListItem.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")</span>
+			<span>@TasksAmount задач</span>
+		</div>
+	</div>
+}
+
+
+
+@code {
+	[Parameter] public ListModel? ListItem { get; set; }
+	[Parameter] public EventCallback<Guid> OnClick { get; set; }
+	[Parameter] public int TasksAmount { get; set; }
+	[Parameter] public DateTime LastUpdate {get; set;}
+	[Parameter] public EventCallback<Guid> OnDelete { get; set; }
+}

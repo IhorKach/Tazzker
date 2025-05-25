@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.JSInterop;
 using Tazzker.Client.Data.LocalDb;
 using Tazzker.Client.Data.Models;
 using Tazzker.Client.Interfaces;
@@ -21,15 +22,22 @@ namespace Tazzker.Client
 			builder.Services.AddScoped<ILocalDb<SublistModel>, SublistLocalDb>();
             builder.Services.AddScoped<ILocalDb<TaskModel>, TaskLocalDb>();
 
-            builder.Services.AddScoped<TokenService>();
+            //builder.Services.AddScoped<TokenService>();
             builder.Services.AddScoped<SyncService>();
+            builder.Services.AddScoped<ModelMethods>();
             builder.Services.AddSingleton<SyncStatusService>();
 
 
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://api:5000/") });
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5001/") });
+
+            var jsRuntime = (IJSRuntime)builder.Services.BuildServiceProvider().GetRequiredService<IJSRuntime>();
+
+            await jsRuntime.InvokeVoidAsync("indexedDbBridge.safeInitDb", "TazzkerDb", 1, new[] { "Lists", "Sublists", "Tasks", "Notes" });
+
+
             await builder.Build().RunAsync();
         }
     }

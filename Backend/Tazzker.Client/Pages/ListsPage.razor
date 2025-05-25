@@ -1,190 +1,157 @@
-﻿@* @using Tazzker.Client.Data.Models;
-@using Tazzker.Client.Data.LocalDb;
-@using Tazzker.Client.Interfaces;
-@page "/lists"
-
-@inject ILocalDb<ListModel> ListDb
-@inject NavigationManager Nav
-
-<h2 class="text-xl font-bold mb-4">📋 Списки</h2>
-
-<input type="text" @bind="newTitle" placeholder="Новый список..." class="border p-2 rounded mr-2" />
-<button @onclick="AddList" class="bg-green-500 text-white px-3 py-2 rounded">Добавить</button>
-
-<ul class="mt-6 space-y-2">
-    @foreach (var list in lists)
-    {
-        var url = $"/list/{list.Id}";
-        <li class="bg-gray-100 p-2 rounded cursor-pointer hover:bg-gray-200"
-            @onclick="@(() => Nav.NavigateTo(url))">
-            <span class="font-semibold">@list.Title</span>
-        </li>
-    }
-</ul>
-
-@code {
-    private List<ListModel> lists = new();
-    private string newTitle = "";
-
-    protected override async Task OnInitializedAsync()
-    {
-        await Refresh();
-    }
-
-    async Task AddList()
-    {
-        if (string.IsNullOrWhiteSpace(newTitle))
-            return;
-
-        var list = new ListModel
-        {
-            Id = Guid.NewGuid().ToString(),
-            Title = newTitle.Trim(),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false,
-            IsSynced = false
-        };
-
-        await ListDb.AddOrUpdateAsync(list);
-        newTitle = "";
-        await Refresh();
-    }
-
-    async Task SaveList(ListModel list)
-    {
-        await ListDb.AddOrUpdateAsync(list);
-        await Refresh();
-    }
-
-    async Task DeleteList(string id)
-    {
-        await ListDb.SoftDeleteAsync(id);
-        await Refresh();
-    }
-
-    async Task Refresh()
-    {
-        lists = await ListDb.GetAllAsync();
-    }
-}
- *@
-
-@page "/lists"
+﻿@page "/lists"
 @using Tazzker.Client.Components
 @using Tazzker.Client.Data.Models
 @using Tazzker.Client.Interfaces
 @using Tazzker.Client.Services
-@inject ILocalDb<ListModel> ListDb
-@inject ILocalDb<TaskModel> TaskDb
-@inject ILocalDb<SublistModel> SublistDb
 @inject NavigationManager Nav
-
-
+@inject ModelMethods App
+@inject SyncService SyncServ
 
 
 <h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20">
-    📂 Списки
+	📂 Списки
 </h2>
 
-<!-- Кнопка добавления сверху -->
-<div class="flex justify-between items-center mb-6 sticky top-16 z-10 bg-yellow-50 pb-2">
-    <button @onclick="AddList"
-            class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded shadow">
-        ➕ Новый список
-    </button>
-    <button @onclick="SyncAll"
-            class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2 rounded shadow">
-        🔄 Синхронизировать
-    </button>
-    <button @onclick="SyncFromServer"
-            class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded shadow">
-        🔄 Обновить из сервера
-    </button>
-</div>
 
 @if (lists.Count == 0)
 {
-    <div class="text-center text-gray-400 italic mt-8">У вас пока нет списков 🐝</div>
+	<div class="text-center text-gray-400 italic mt-8">У вас пока нет списков 🐝</div>
 }
 else
 {
-    <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-        @foreach (var list in lists)
-        {
-            <div @onclick="@(() => Nav.NavigateTo($"/list/{list.Id}"))"
-                 class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-xl shadow cursor-pointer transition-all group">
-                <div class="text-lg font-semibold text-gray-800 truncate mb-1">@list.Title</div>
-                <div class="text-sm text-gray-600">
-                    🕒 @list.UpdatedAt.ToLocalTime().ToString("g")
-                </div>
-                <div class="text-sm text-gray-500">
-                    ✅ Задач: @GetTaskCount(list.Id)
-                </div>
-            </div>
-        }
-    </div>
+	<div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+		@foreach (var list in lists)
+		{
+			<ListCard OnClick="Redirect" TasksAmount="@GetTaskCount(list.Id)" ListItem="list" OnDelete="SetListToDelete" LastUpdate="@GetLastUpdate(list.Id)"></ListCard>
+		}
+	</div>
 }
 
-<!-- FAB-кнопка на мобилках -->
-<button @onclick="AddList"
-        class="sm:hidden fixed bottom-4 right-4 bg-yellow-400 hover:bg-yellow-500 text-white text-xl rounded-full w-14 h-14 shadow-lg flex items-center justify-center z-50">
-    +
-</button>
+
+<ConfirmDialog Message="Удалить список со всем содержимым?"
+			   Show="@showConfirmModal"
+			   OnConfirm="HandleConfirmDelete" />
+
+<StickyAddButton OnClick="AddList"></StickyAddButton>
 
 @code {
-    List<ListModel> lists = new();
-    List<TaskModel> tasks = new();
-    List<SublistModel> sublists = new();
-    Dictionary<Guid, List<Guid>> sublistsByList = new();
+	List<ListModel> lists = new();
+	List<TaskModel> tasks = new();
+	List<SublistModel> sublists = new();
+	Dictionary<Guid, List<Guid>> sublistsByList = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        lists = await ListDb.GetAllAsync();
-        tasks = await TaskDb.GetAllAsync();
-        sublists = await SublistDb.GetAllAsync();
+	private bool showConfirmModal = false;
+	private Guid? listToDelete = null;
 
-        sublistsByList = sublists
-            .GroupBy(s => s.ListId)
-            .ToDictionary(g => g.Key, g => g.Select(s => s.Id).ToList());
-    }
+	private void SetListToDelete(Guid listId)
+	{
+		listToDelete = listId;
+		showConfirmModal = true;
+	}
 
-    int GetTaskCount(Guid listId)
-    {
-        if (!sublistsByList.TryGetValue(listId, out var sublistIds))
-            return 0;
+	private async Task HandleConfirmDelete(bool confirmed)
+	{
+		showConfirmModal = false;
+		if (!confirmed || listToDelete is null) return;
 
-        return tasks.Count(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value));
-    }
+		await DeleteList((Guid)listToDelete);
+		listToDelete = null;
+		showConfirmModal = false;
+	}
 
-    async Task AddList()
-    {
-        var list = new ListModel
-            {
-                Id = Guid.NewGuid(),
-                Title = "Новый список",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+	private async Task Refresh()
+	{
+		lists = await App.GetAllLists();
+		tasks = await App.GetAllTasks();
+		sublists = await App.GetAllSublists();
 
-        await ListDb.AddOrUpdateAsync(list);
-        lists = await ListDb.GetAllAsync();
-    }
+		sublistsByList = sublists
+			.GroupBy(s => s.ListId)
+			.ToDictionary(g => g.Key, g => g.Select(s => s.Id).ToList());
+	}
 
-    [Inject] private SyncService Sync { get; set; }
 
-    private async Task SyncAll()
-    {
-        await Sync.SyncAllAsync();
-        await Sync.SyncHardDeletedAsync();
-        Console.WriteLine("Синхронизация завершена.");
-    }
 
-    private async Task SyncFromServer()
-    {
-        await Sync.PullAllAsync();
-        // При желании — перезагрузи текущую страницу:
-        Nav.NavigateTo(Nav.Uri, forceLoad: true);
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		SyncServ.OnSynced += Refresh;
+		await Refresh();
+	}
 
+	private int GetTaskCount(Guid listId)
+	{
+		if (!sublistsByList.TryGetValue(listId, out var sublistIds))
+			return 0;
+
+		return tasks.Count(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value));
+	}
+
+	private DateTime GetLastUpdate(Guid listId)
+	{
+		var list = lists.FirstOrDefault(l => l.Id == listId);
+		if (list == null) return DateTime.MinValue;
+
+		var listUpdated = list.UpdatedAt;
+
+		var sublistIds = sublists
+			.Where(s => s.ListId == listId)
+			.Select(s => s.Id)
+			.ToList();
+
+		var sublistUpdated = sublists
+			.Where(s => s.ListId == listId)
+			.Select(s => s.UpdatedAt);
+
+		var taskUpdated = tasks
+			.Where(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value))
+			.Select(t => t.UpdatedAt);
+
+		return new[] { listUpdated }
+			.Concat(sublistUpdated)
+			.Concat(taskUpdated)
+			.Max();
+	}
+
+
+	private async Task AddList()
+	{
+		var listId = await App.AddList();
+
+		Redirect(listId);
+	}
+
+	private async Task DeleteList(Guid listId)
+	{
+		// 1. Получаем все подсписки, связанные с этим списком
+		if (!sublistsByList.TryGetValue(listId, out var sublistIds))
+			sublistIds = new();
+
+		// 2. Находим все задачи, привязанные к этим подспискам
+		var tasksToDelete = tasks
+			.Where(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value))
+			.ToList();
+
+		foreach (var task in tasksToDelete)
+		{
+			await App.DeleteTask(task.Id);
+		}
+
+		// 3. Удаляем все подсписки
+		foreach (var subId in sublistIds)
+		{
+			await App.DeleteSublist(subId);
+		}
+
+		// 4. Удаляем сам список
+		await App.DeleteList(listId);
+
+		// 5. Обновляем состояние (чтобы список исчез из UI)
+		lists.RemoveAll(l => l.Id == listId);
+		sublists.RemoveAll(s => s.ListId == listId);
+		tasks.RemoveAll(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value));
+		sublistsByList.Remove(listId);
+	}
+
+
+	private void Redirect(Guid listId) => Nav.NavigateTo($"/list/{listId}");
 }

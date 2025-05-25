@@ -55,6 +55,284 @@
     private string ConfirmPassword = "";
     private string Error = "";
 
+    private async Task Submit()
+    {
+        Error = "";
+
+        if (!isLogin && Password != ConfirmPassword)
+        {
+            Error = "Пароли не совпадают.";
+            return;
+        }
+
+        if (!await JS.InvokeAsync<bool>("isOnline"))
+        {
+            Error = "Нет подключения к интернету.";
+            return;
+        }
+
+        object payload = isLogin
+            ? new { Username, Password }
+            : new { Email, Username, Password };
+
+        var url = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = JsonContent.Create(payload)
+                };
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+            var response = await Http.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                Error = await response.Content.ReadAsStringAsync();
+                return;
+            }
+
+            // Получаем userId
+            var userIdRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/userid");
+            userIdRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            var userIdResponse = await Http.SendAsync(userIdRequest);
+
+            if (!userIdResponse.IsSuccessStatusCode)
+            {
+                Error = "Не удалось получить userId.";
+                return;
+            }
+
+            var newUserId = await userIdResponse.Content.ReadAsStringAsync();
+            var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
+
+            if (string.IsNullOrWhiteSpace(storedUserId) || !isLogin)
+            {
+                // Первая авторизация
+                await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
+                await SyncService.PullAllAsync();
+            }
+            else if (storedUserId != newUserId)
+            {
+                // Новый аккаунт
+                await SyncService.ClearAllAsync();
+                await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
+                await SyncService.PullAllAsync();
+            }
+            else
+            {
+                // Тот же аккаунт
+                await SyncService.SyncAllAsync();
+                await SyncService.PullAllAsync();
+            }
+
+            // Отмечаем, что пользователь залогинен
+            await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
+
+            Nav.NavigateTo("/lists");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            Error = "Ошибка соединения с сервером.";
+        }
+    }
+
+
+
+
+
+
+
+    //last stable version
+
+    // private async Task Submit()
+    // {
+    //     Error = "";
+
+    //     if (!isLogin && Password != ConfirmPassword)
+    //     {
+    //         Error = "Пароли не совпадают.";
+    //         return;
+    //     }
+
+    //     if (!await JS.InvokeAsync<bool>("isOnline"))
+    //     {
+    //         Error = "Нет подключения к интернету.";
+    //         return;
+    //     }
+
+
+    //     object payload = isLogin
+    //         ? new { Username, Password }
+    //         : new { Email, Username, Password };
+
+    //     var url = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+    //     try
+    //     {
+    //         var request = new HttpRequestMessage(HttpMethod.Post, url)
+    //             {
+    //                 Content = JsonContent.Create(payload)
+    //             };
+    //         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+    //         var response = await Http.SendAsync(request);
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             Error = await response.Content.ReadAsStringAsync();
+    //             return;
+    //         }
+
+    //         Получаем userId
+    //         var userIdRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/userid");
+    //         userIdRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+    //         var userIdResponse = await Http.SendAsync(userIdRequest);
+
+    //         if (!userIdResponse.IsSuccessStatusCode)
+    //         {
+    //             Error = "Не удалось получить userId.";
+    //             return;
+    //         }
+
+    //         var newUserId = await userIdResponse.Content.ReadAsStringAsync();
+    //         var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
+
+    //         if (!isLogin || string.IsNullOrWhiteSpace(storedUserId))
+    //         {
+    //             регистрация или логин без текущего userId
+    //             await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
+    //             await SyncService.PullAllAsync();
+    //         }
+    //         else if (storedUserId != newUserId)
+    //         {
+    //             логин под другим аккаунтом
+    //             await SyncService.ClearAllAsync();
+    //             await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
+    //             await SyncService.PullAllAsync();
+    //         }
+    //         else
+    //         {
+    //             логин под тем же аккаунтом
+    //             await SyncService.SyncAllAsync();
+    //             await SyncService.PullAllAsync();
+    //         }
+    //         await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
+
+    //         Nav.NavigateTo("/lists");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex);
+    //         Error = "Ошибка соединения с сервером.";
+    //     }
+    // }
+
+
+
+
+
+
+
+
+
+
+
+    //outdated but working
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
+    //     if (!string.IsNullOrWhiteSpace(storedUserId))
+    //     {
+    //         Nav.NavigateTo("/lists");
+    //     }
+    // }
+
+    // private async Task Submit()
+    // {
+    //     Error = "";
+
+    //     if (!isLogin && Password != ConfirmPassword)
+    //     {
+    //         Error = "Пароли не совпадают.";
+    //         return;
+    //     }
+
+    //     object payload = isLogin
+    //         ? new { Username, Password }
+    //         : new { Email, Username, Password };
+
+    //     var url = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+    //     try
+    //     {
+    //         var request = new HttpRequestMessage(HttpMethod.Post, url)
+    //             {
+    //                 Content = JsonContent.Create(payload)
+    //             };
+    //         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+    //         var response = await Http.SendAsync(request);
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             var errorText = await response.Content.ReadAsStringAsync();
+    //             Error = errorText;
+    //             return;
+    //         }
+
+    //         Получаем userId с сервера
+    //         var userIdRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/userid");
+    //         userIdRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+    //         var userIdResponse = await Http.SendAsync(userIdRequest);
+
+    //         if (!userIdResponse.IsSuccessStatusCode)
+    //         {
+    //             Error = "Не удалось получить userId.";
+    //             return;
+    //         }
+
+    //         var newUserId = await userIdResponse.Content.ReadAsStringAsync();
+    //         var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
+
+    //         if (storedUserId != null && storedUserId != newUserId)
+    //         {
+    //             await SyncService.ClearAllAsync();
+    //         }
+
+    //         await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
+    //         await SyncService.PullAllAsync();
+
+    //         Nav.NavigateTo("/lists");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex);
+    //         Error = "Ошибка соединения с сервером.";
+    //     }
+    // }
+}
+
+
+
+
+
+
+
+
+@* // start of old code*@
+
+@*
+    @code {
+    private bool isLogin = true;
+    private string Email = "";
+    private string Username = "";
+    private string Password = "";
+    private string ConfirmPassword = "";
+    private string Error = "";
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,6 +420,21 @@
     }
 
 }
+
+
+
+
+*@
+
+@* // end of old code*@
+
+
+
+
+
+@*  //old submit method*@
+
+
 
 @*     // private async Task Submit()
     // {

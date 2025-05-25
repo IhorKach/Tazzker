@@ -32,11 +32,16 @@
 }
  *@
 
+
+ @* // last worked version
+
+
 @inherits LayoutComponentBase
 @using Tazzker.Client.Services
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject IndexedDbBridge Db
+@inject HttpClient Http
 
 <div class="flex h-screen">
     <!-- Sidebar -->
@@ -80,9 +85,89 @@
 
     private async Task Logout()
     {
-        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
-        await JS.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+        // 1. Удаляем только серверные токены (куки)
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        await Http.SendAsync(request);
 
+        // 2. НЕ трогаем currentUserId — он нужен для сверки при следующем логине
+        // 3. НЕ трогаем IndexedDB — это пользователь сам определит, тот ли он
+
+        // 4. Уходим на логин
         Nav.NavigateTo("/auth", forceLoad: true);
     }
+    // private async Task Logout()
+    // {
+    //     await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+    //     await JS.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+
+    //     Nav.NavigateTo("/auth", forceLoad: true);
+    // }
+
+}
+ *@
+@inherits LayoutComponentBase
+@using Tazzker.Client.Services
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject IndexedDbBridge Db
+@inject HttpClient Http
+
+<div class="relative h-screen overflow-hidden bg-yellow-50">
+    <!-- Боковое меню -->
+    <div class="fixed top-0 left-0 h-full z-40 transition-transform duration-200 transform bg-yellow-100 text-yellow-900 w-64 shadow-md"
+         style="@(isNavOpen ? "transform: translateX(0%)" : "transform: translateX(-100%)")">
+        <div class="p-4 border-b border-yellow-300 flex justify-between items-center">
+            <h2 class="text-lg font-semibold">Меню</h2>
+            <button class="text-yellow-800 text-xl" @onclick="ToggleNav">✕</button>
+        </div>
+        <NavMenu />
+    </div>
+
+    <!-- Контент -->
+    <div class="flex flex-col h-full ml-0">
+        <!-- Верхняя панель -->
+        <div class="bg-yellow-200 text-yellow-900 flex items-center justify-between px-4 py-2 shadow z-10 relative">
+            <button class="text-2xl font-bold z-10" @onclick="ToggleNav">☰</button>
+
+            <div class="absolute inset-0 flex justify-center items-center pointer-events-none">
+                <h1 class="text-xl font-bold">Tazzker</h1>
+            </div>
+        </div>
+
+
+        <!-- Контент -->
+        <main class="flex-1 overflow-auto px-4 pt-2 bg-yellow-50">
+            @Body
+        </main>
+    </div>
+</div>
+
+@if (!Nav.Uri.Contains("/auth"))
+{
+    <Tazzker.Client.Components.SyncIndicator />
+}
+<Tazzker.Client.Components.AutoSyncService />
+
+@code {
+    private bool isNavOpen = false;
+
+    private void ToggleNav() => isNavOpen = !isNavOpen;
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        isNavOpen = false;
+        InvokeAsync(StateHasChanged); // чтобы обновить UI
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+
 }

@@ -1,0 +1,145 @@
+﻿@using Tazzker.Client.Data.Models;
+
+@if (TaskItem != null)
+{
+	<div class="flex items-start gap-2 p-3 rounded-xl bg-white shadow border border-yellow-400 w-full relative">
+		<!-- Чекбокс -->
+		<input type="checkbox" class="mt-1 accent-yellow-500 w-5 h-5 shrink-0" checked="@TaskItem.IsCompleted" @onchange="ToggleCompleted" />
+
+		<!-- Многострочный текст -->
+		@if (editMode)
+		{
+			<textarea @ref="TextRef"
+					  @bind="TaskItem.Title"
+					  @onblur="EditTitle"
+					  maxlength="128"
+					  oninput="this.style.height='auto';this.style.height=this.scrollHeight + 'px';"
+					  onfocus="this.style.height='auto';this.style.height=this.scrollHeight + 'px';"
+					  class="flex-grow resize-none overflow-hidden border-none bg-transparent focus:outline-none text-sm text-gray-800 leading-snug break-words"
+					  rows="1"
+					  style="height:auto"
+					  placeholder="Введите задачу...">
+									</textarea>
+		}
+		else
+		{
+			@* <div class="flex-grow text-sm text-gray-800 leading-snug break-words cursor-pointer"
+				 @onclick="EnableEdit">
+				@TaskItem.Title
+			</div> *@
+			<div class="flex-grow text-sm text-gray-800 leading-snug cursor-pointer
+             break-all whitespace-break-spaces overflow-hidden"
+				 style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;"
+				 @onclick="EnableEdit">
+				@TaskItem.Title
+			</div>
+		}
+		<button @onclick="ToggleDatePicker"
+				class="text-sm px-2 py-1 rounded hover:bg-gray-100 transition">
+			📅
+		</button>
+
+		<button @onclick="DeleteTask"
+				class="text-sm px-2 py-1 rounded hover:bg-red-100 text-red-600 transition">
+			🗑
+		</button>
+
+		<!--кнопка-->
+		@if (showDatePicker)
+		{
+			<div class="absolute top-full right-0 mt-1 w-60 bg-white border border-gray-300 rounded shadow p-3 z-10">
+
+				<input type="date"
+					   class="w-full border px-2 py-1 rounded text-sm"
+					   value="@(TaskItem.DueTime?.ToString("yyyy-MM-dd"))"
+					   @onchange="AssignDate" />
+
+				<div class="flex justify-between mt-2">
+					<button @onclick="ClearDate"
+							class="text-sm text-red-600 hover:text-red-800">
+						🗑 Убрать дату
+					</button>
+
+					<button @onclick="() => showDatePicker = false"
+							class="text-sm text-gray-600 hover:text-gray-800">
+						✖ Закрыть
+					</button>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+@code {
+	[Parameter] public TaskModel? TaskItem { get; set; }
+	[Parameter] public EventCallback<TaskModel> OnChanged { get; set; }
+	[Parameter] public EventCallback<TaskModel> OnCallOptions { get; set; }
+
+	[Inject] private IJSRuntime JS { get; set; } = null!;
+	private ElementReference TextRef;
+
+	private bool editMode = false;
+	private bool showDatePicker = false;
+
+
+	private void ToggleDatePicker() => showDatePicker = !showDatePicker;
+
+	private void CloseDatePicker() => showDatePicker = false;
+
+
+	private async Task ClearDate()
+	{
+		if (TaskItem == null) return;
+		TaskItem.DueTime = null;
+		TaskItem.IsSynced = false;
+		await OnChanged.InvokeAsync(TaskItem);
+		CloseDatePicker();
+	}
+
+	private async Task AssignDate(ChangeEventArgs e)
+	{
+		if (TaskItem == null) return;
+
+		if (DateTime.TryParse(e.Value?.ToString(), out var parsedDate))
+		{
+			TaskItem.DueTime = parsedDate;
+			TaskItem.IsSynced = false;
+			await OnChanged.InvokeAsync(TaskItem);
+		}
+
+		CloseDatePicker();
+	}
+
+	private async Task DeleteTask()
+	{
+		if (TaskItem == null) return;
+		TaskItem.IsDeleted = true;
+		TaskItem.IsSynced = false;
+		TaskItem.PermDeleted = true;
+		await OnChanged.InvokeAsync(TaskItem);
+	}
+
+	private async Task EnableEdit()
+	{
+		editMode = true;
+		await Task.Yield();
+		await JS.InvokeVoidAsync("focusAndMoveCursorToEnd", TextRef);
+	}
+
+	private async Task ToggleCompleted(ChangeEventArgs eventArgs)
+	{
+		if (TaskItem is null) return;
+
+		TaskItem.IsCompleted = (bool)eventArgs.Value!;
+		TaskItem.IsSynced = false;
+		await OnChanged.InvokeAsync(TaskItem);
+	}
+
+	private async Task EditTitle()
+	{
+		if (TaskItem is null) return;
+		editMode = false;
+		TaskItem.IsSynced = false;
+		await OnChanged.InvokeAsync(TaskItem);
+	}
+}

@@ -1,69 +1,89 @@
 ﻿ @page "/calendar"
  @using Tazzker.Client.Components
+ @using Tazzker.Client.Services
 @using Tazzker.Client.Data.Models
 @using Tazzker.Client.Interfaces
 @using System.Globalization
-@inject ILocalDb<TaskModel> TaskDb
+@inject ModelMethods App
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject SyncService SyncServ
 
 
-	<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
-		📅 Календарь
-	</h2>
+<h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow">
+	📅 Календарь
+</h2>
+<!-- Trick for Tailwind purge -->
+<div class="hidden border-yellow-500 border-2 rounded"></div>
 
-	<div class="px-4 py-6 space-y-4">
-		<!-- Навигация по месяцам и годам -->
-		<div class="flex items-center justify-between">
-			<button @onclick="() => ChangeMonth(-1)" class="text-yellow-600 hover:text-yellow-800 text-lg">←</button>
+<div class="px-4 py-6 space-y-4">
+	<!-- Навигация по месяцам и годам -->
+	@{
+		var prevLabel = "<";
+		var nextLabel = ">";
+	}
+	<div class="flex items-center justify-between px-4 py-2 bg-yellow-50 rounded-xl shadow-sm border border-yellow-200 mb-4">
+		<!-- Кнопка "Назад" -->
+		<button @onclick="() => ChangeMonth(-1)"
+				class="text-yellow-600 hover:text-yellow-800 text-xl sm:text-2xl font-bold px-3 py-1 transition-colors rounded hover:bg-yellow-100">
+			@prevLabel
+		</button>
 
-			<div class="flex items-center space-x-2">
-				<select value="@selectedMonth" @onchange="OnMonthChanged" class="bg-yellow-50 border rounded px-2 py-1">
-					@for (int m = 1; m <= 12; m++)
-					{
-						<option value="@m">@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
-					}
-				</select>
+		<!-- Селекторы месяца и года -->
+		<div class="flex items-center gap-2 sm:gap-4">
+			<select @bind="selectedMonth"
+					@bind:after="OnMonthChanged"
+					class="bg-white text-yellow-800 border border-yellow-300 rounded-lg px-3 py-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all">
+				@for (int m = 1; m <= 12; m++)
+				{
+					<option value="@m">@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+				}
+			</select>
 
-				<select value="@selectedYear" @onchange="OnYearChanged" class="bg-yellow-50 border rounded px-2 py-1">
-					@for (int y = currentYear - 5; y <= currentYear + 5; y++)
-					{
-						<option value="@y">@y</option>
-					}
-				</select>
-			</div>
-
-			<button @onclick="() => ChangeMonth(1)" class="text-yellow-600 hover:text-yellow-800 text-lg">→</button>
+			<select @bind="selectedYear"
+					@bind:after="OnYearChanged"
+					class="bg-white text-yellow-800 border border-yellow-300 rounded-lg px-3 py-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all">
+				@for (int y = currentYear - 5; y <= currentYear + 5; y++)
+				{
+					<option value="@y">@y</option>
+				}
+			</select>
 		</div>
 
-		<!-- Сетка дней недели -->
-		<div class="grid grid-cols-7 text-center font-semibold text-yellow-700">
-			<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-		</div>
-
-		<!-- Сетка дней месяца -->
-		<div class="grid grid-cols-7 divide-x divide-y divide-yellow-100 border border-yellow-200">
-			@foreach (var day in visibleDays)
-			{
-				var isToday = day.Date.Date == DateTime.Today;
-				var hasTasks = taskMap.ContainsKey(day.Date.Date);
-
-				<div class="p-2 sm:p-3 text-sm cursor-pointer transition-all duration-200
-                        @(day.IsCurrentMonth ? "bg-white" : "bg-yellow-50 text-gray-400")
-                        @(isToday ? "border-2 border-yellow-500 rounded" : "")"
-					 @onclick="() => SelectDay(day.Date)">
-
-					<div class="flex items-center justify-between">
-						<span class="font-semibold">@day.Date.Day</span>
-						@if (hasTasks)
-						{
-							<span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-						}
-					</div>
-				</div>
-			}
-		</div>
+		<!-- Кнопка "Вперёд" -->
+		<button @onclick="() => ChangeMonth(1)"
+				class="text-yellow-600 hover:text-yellow-800 text-xl sm:text-2xl font-bold px-3 py-1 transition-colors rounded hover:bg-yellow-100">
+			@nextLabel
+		</button>
 	</div>
+
+	<!-- Сетка дней недели -->
+	<div class="grid grid-cols-7 text-center font-semibold text-yellow-700">
+		<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+	</div>
+
+	<!-- Сетка дней месяца -->
+	<div class="grid grid-cols-7 divide-x divide-y divide-yellow-100 border border-yellow-200">
+		@foreach (var day in visibleDays)
+		{
+			var isToday = day.Date.Date == DateTime.Today;
+			var hasTasks = taskMap.ContainsKey(day.Date.Date);
+
+			<div class=@($"p-2 sm:p-3 text-sm cursor-pointer transition-all duration-200 {(day.IsCurrentMonth ? "bg-white" : "bg-yellow-50 text-gray-400")} {(isToday ? "bg-yellow-100 border-2 border-yellow-800 font-bold shadow-inner" : "")}")
+				 @onclick="() => SelectDay(day.Date)">
+
+
+				<div class="flex items-center justify-between">
+					<span class="font-semibold">@day.Date.Day</span>
+					@if (hasTasks)
+					{
+						<span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+					}
+				</div>
+			</div>
+		}
+	</div>
+</div>
 
 
 
@@ -76,8 +96,11 @@
 	private int selectedYear;
 	private int currentYear = DateTime.Today.Year;
 
+	private void SelectDay(DateTime day) => Nav.NavigateTo($"/calendar/{day:yyyy-MM-dd}");
+
 	protected override async Task OnInitializedAsync()
 	{
+		SyncServ.OnSynced += LoadCalendar;
 		selectedMonth = currentMonth.Month;
 		selectedYear = currentMonth.Year;
 		await LoadCalendar();
@@ -85,10 +108,11 @@
 
 	private async Task LoadCalendar()
 	{
-		var allTasks = await TaskDb.GetAllAsync();
+		var allTasks = await App.GetAllTasks();
+
 		taskMap = allTasks
 			.Where(t => t.DueTime.HasValue && !t.IsDeleted)
-			.GroupBy(t => t.DueTime.Value.Date)
+			.GroupBy(t => t.DueTime!.Value.Date)
 			.ToDictionary(g => g.Key, g => g.ToList());
 
 		visibleDays = GetVisibleDays(currentMonth);
@@ -102,10 +126,6 @@
 		visibleDays = GetVisibleDays(currentMonth);
 	}
 
-	private void SelectDay(DateTime day)
-	{
-		Nav.NavigateTo($"/calendar/{day:yyyy-MM-dd}");
-	}
 
 	private List<CalendarDay> GetVisibleDays(DateTime month)
 	{
@@ -124,15 +144,13 @@
 		return days;
 	}
 
-	private async Task OnMonthChanged(ChangeEventArgs e)
+	private async Task OnMonthChanged()
 	{
-		selectedMonth = int.Parse(e.Value?.ToString() ?? $"{currentMonth.Month}");
 		await UpdateCalendarFromSelection();
 	}
 
-	private async Task OnYearChanged(ChangeEventArgs e)
+	private async Task OnYearChanged()
 	{
-		selectedYear = int.Parse(e.Value?.ToString() ?? $"{currentMonth.Year}");
 		await UpdateCalendarFromSelection();
 	}
 

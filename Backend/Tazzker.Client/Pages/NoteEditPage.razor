@@ -7,53 +7,139 @@
 @using Tazzker.Client.Components
 @inject NavigationManager Nav
 @inject ILocalDb<NoteModel> NoteDb
-
-<div class="absolute inset-0 flex flex-col">
-    <!-- Навигация -->
-    <div class="p-4 bg-white border-b flex justify-between items-center">
-        <button @onclick="GoBack"
-                class="text-yellow-600 hover:text-yellow-800 inline-flex items-center gap-1">
-            ← Назад
-        </button>
-        <div class="text-sm text-gray-400 italic">
-            Последнее обновление: @note.UpdatedAt.ToLocalTime().ToString("g")
-        </div>
-    </div>
-
-    <!-- Контент -->
-    <div class="flex-1 overflow-auto p-6 bg-yellow-50">
-        <input @bind="note.Title"
-               @onblur="Save"
-               class="text-4xl font-extrabold w-full mb-6 bg-yellow-100 border-2 border-yellow-400 rounded p-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow" />
+@inject IJSRuntime JS
 
 
-        <textarea @bind="note.Body"
-                  @onblur="Save"
-                  class="w-full h-full resize-none p-4 border border-yellow-200 rounded bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
-        </textarea>
-    </div>
+<div class="absolute inset-0 flex flex-col bg-yellow-50">
+	@{
+		var backLabel = "< Назад";
+	}
+	<!-- Навигация -->
+	<div class="p-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm">
+		<button @onclick="GoBack"
+				class="text-yellow-600  hover:text-yellow-800 font-semibold text-sm">
+			@backLabel
+		</button>
+		<span class="text-xs text-gray-400 italic">
+			Последнее обновление: @note.UpdatedAt.ToLocalTime().ToString("g")
+		</span>
+	</div>
+
+	<!-- Контент -->
+	<div class="flex-1 overflow-auto px-4 py-6 flex flex-col gap-6 max-w-screen-md w-full mx-auto">
+
+		<!-- Заголовок -->
+		<div @ref="TitleRef"
+			 data-note-title
+			 contenteditable="true"
+			 @oninput="OnTitleInput"
+			 @onblur="SaveTitle"
+			 class="text-2xl font-bold w-full bg-yellow-100 border-2 border-yellow-400 rounded p-4 text-gray-900 focus:outline-none shadow leading-tight">
+		</div>
+
+		<div class="text-sm text-gray-500 text-right">
+			@TitleLength / @MaxTitleLength
+		</div>
+
+		<!-- Тело -->
+		<div contenteditable="true"
+			 @ref="BodyRef"
+			 data-note-body
+			 @oninput="OnBodyInput"
+			 @onblur="SaveBody"
+			 class="min-h-[60vh] whitespace-pre-wrap w-full bg-white border border-yellow-300 rounded-xl p-4 text-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 leading-relaxed">
+		</div>
+
+		<div class="text-sm text-gray-500 text-right">
+			@BodyLength / @MaxBodyLength
+		</div>
+
+	</div>
 </div>
 
+
+
+@using Tazzker.Client.Services
+@inject ModelMethods App
+
 @code {
-    [Parameter]
-    public Guid Id { get; set; }
+	[Parameter] public Guid Id { get; set; }
+	private NoteModel note = new();
 
-    private NoteModel note = new();
+	protected override async Task OnInitializedAsync()
+	{
+		var found = await App.GetNoteById(Id);
+		
+		note = found ?? new NoteModel { Id = Id, Title = "", Body = "" };
 
-    protected override async Task OnInitializedAsync()
-    {
-        var found = await NoteDb.GetByIdAsync(Id);
-        note = found ?? new NoteModel { Id = Id, Title = "", Body = "" };
-    }
+		// Установим значение contenteditable полей сразу после загрузки
+		await Task.Yield(); // Ждём пока компоненты появятся
+		await JS.InvokeVoidAsync("noteInterop.setContent", "[data-note-title]", note.Title);
+		await JS.InvokeVoidAsync("noteInterop.setContent", "[data-note-body]", note.Body);
 
-             void GoBack()
-     {
-         Nav.NavigateTo("/notes");
-     }
 
-    async Task Save()
-    {
-        note.UpdatedAt = DateTime.UtcNow;
-        await NoteDb.AddOrUpdateAsync(note);
-    }
+		var titleText = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
+		TitleLength = titleText.Length;
+
+		var bodyText = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
+		BodyLength = bodyText.Length;
+
+		StateHasChanged();
+	}
+
+	private void GoBack() => Nav.NavigateTo("/notes");
+
+	private async Task SaveNote() => await App.SaveNote(note);
+
+	//---------------------------------------below editable div code related only---------------------//
+
+	ElementReference TitleRef;
+
+	private int MaxTitleLength = 64;
+	private int TitleLength = 0;
+
+
+	private async Task OnTitleInput(ChangeEventArgs e)
+	{
+		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
+		TitleLength = text.Length;
+
+		if (TitleLength > MaxTitleLength)
+		{
+			await JS.InvokeVoidAsync("noteInterop.preventLastInput", TitleRef);
+			TitleLength = MaxTitleLength;
+		}
+	}
+	private async Task SaveTitle(FocusEventArgs e)
+	{
+		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
+		note.Title = text.Trim();
+		await SaveNote();
+	}
+
+
+	ElementReference BodyRef;
+
+	private int MaxBodyLength = 4096;
+	private int BodyLength = 0;
+
+	private async Task OnBodyInput(ChangeEventArgs e)
+	{
+		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
+		BodyLength = text.Length;
+
+		if (BodyLength > MaxBodyLength)
+		{
+			await JS.InvokeVoidAsync("noteInterop.preventLastInput", BodyRef);
+			BodyLength = MaxBodyLength;
+		}
+	}
+
+	private async Task SaveBody(FocusEventArgs e)
+	{
+		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
+		note.Body = text.Trim();
+		await SaveNote();
+	}
 }
+

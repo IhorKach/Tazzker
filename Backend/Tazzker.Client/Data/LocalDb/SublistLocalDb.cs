@@ -29,6 +29,7 @@ namespace Tazzker.Client.Data.LocalDb
 		public async Task AddOrUpdateAsync(SublistModel item)
 		{
 			item.UpdatedAt = DateTime.UtcNow;
+			item.IsSynced = false;
 			await _db.AddAsync(StoreName, item);
 		}
 
@@ -37,9 +38,8 @@ namespace Tazzker.Client.Data.LocalDb
 			var sublist = await GetByIdAsync(id);
 			if (sublist is null) return;
 
+			sublist.PermDeleted = true;
 			sublist.IsDeleted = true;
-			sublist.IsSynced = false;
-			sublist.UpdatedAt = DateTime.UtcNow;
 
 			await AddOrUpdateAsync(sublist);
 		}

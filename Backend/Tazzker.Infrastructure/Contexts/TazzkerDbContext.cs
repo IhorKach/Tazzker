@@ -15,6 +15,7 @@ namespace Tazzker.Infrastructure.Contexts
         public DbSet<TaskList> TaskLists { get; set; }
         
         public DbSet<User> Users { get; set; }
+
         public DbSet<List> Lists { get; set; }
         public DbSet<Sublist> Sublists { get; set; }
         public DbSet<Domain.Task> Tasks { get; set; }

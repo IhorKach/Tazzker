@@ -1,0 +1,11 @@
+﻿<div class="sticky bottom-4 z-20 flex justify-center pointer-events-none mt-6">
+	<button @onclick="()=>OnClick.InvokeAsync()"
+			class="w-12 h-12 bg-yellow-400 hover:bg-yellow-500 text-white rounded-full text-2xl shadow transition pointer-events-auto">
+		+
+	</button>
+</div>
+
+
+@code {
+	[Parameter] public EventCallback OnClick { get; set; }
+}

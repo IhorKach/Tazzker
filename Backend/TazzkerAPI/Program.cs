@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Tazzker.Application.Interfaces;
 using Tazzker.Application.Services;
 using Tazzker.Infrastructure.Contexts;
@@ -12,173 +11,217 @@ using TazzkerAPI.Middleware;
 using Microsoft.AspNetCore.Mvc;
 namespace TazzkerAPI
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+	public class Program
+	{
+		public static void Main(string[] args)
+		{
+			var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("Default");
+			// Add services to the container.
+			var connectionString = builder.Configuration.GetConnectionString("Default");
 
-            builder.Services.AddDbContext<TazzkerDbContext>(options => options.UseNpgsql(connectionString));
+			builder.Services.AddDbContext<TazzkerDbContext>(options => options.UseNpgsql(connectionString));
 
-            builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-
-
-            builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
-            builder.Services.AddScoped<ITaskItemService, TaskItemService>();
-
-
-            builder.Services.AddScoped<ITaskListRepository, TaskListRepository>();
-            builder.Services.AddScoped<ITaskListService, TaskListService>();
+			builder.Services.AddScoped<IAuthService, AuthService>();
+			builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
 
+			builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+			builder.Services.AddScoped<ITaskItemService, TaskItemService>();
 
-            builder.Services.AddScoped<IListRepository, ListRepository>();
-            builder.Services.AddScoped<IListService, ListService>();
 
-            builder.Services.AddScoped<ISublistRepository, SublistRepository>();
-            builder.Services.AddScoped<ISublistService, SublistService>();
+			builder.Services.AddScoped<ITaskListRepository, TaskListRepository>();
+			builder.Services.AddScoped<ITaskListService, TaskListService>();
 
-            builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-            builder.Services.AddScoped<ITaskService, TaskService>();
 
-            builder.Services.AddScoped<INoteRepository, NoteRepository>();
-            builder.Services.AddScoped<INoteService, NoteService>();
+
+
+			builder.Services.AddScoped<IListRepository, ListRepository>();
+			builder.Services.AddScoped<IListService, ListService>();
+
+			builder.Services.AddScoped<ISublistRepository, SublistRepository>();
+			builder.Services.AddScoped<ISublistService, SublistService>();
+
+			builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+			builder.Services.AddScoped<ITaskService, TaskService>();
+
+			builder.Services.AddScoped<INoteRepository, NoteRepository>();
+			builder.Services.AddScoped<INoteService, NoteService>();
+
 
 
             builder.Services.AddHttpContextAccessor();
-            builder.Services.AddScoped<IUserContext, UserContext>();
+			builder.Services.AddScoped<IUserContext, UserContext>();
 
-            builder.Services.AddControllers();
-
-
-            builder.Services.AddEndpointsApiExplorer();
-            //builder.Services.AddSwaggerGen();
-
-            builder.Services.AddSwaggerGen(options =>
-            {
-                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Tazzker API", Version = "v1" });
-
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Description = "Введите токен в формате Bearer:{token}",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
-                });
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            },
-                            Scheme = "oauth2",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header
-                        },
-                        new List<string>()
-                    }
-                });
-            });
+			builder.Services.AddControllers();
 
 
+			builder.Services.AddEndpointsApiExplorer();
+			//builder.Services.AddSwaggerGen();
 
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+			builder.Services.AddSwaggerGen(options =>
+			{
+				options.SwaggerDoc("v1", new OpenApiInfo { Title = "Tazzker API", Version = "v1" });
+
+				options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+				{
+					Description = "Введите токен в формате Bearer:{token}",
+					Name = "Authorization",
+					In = ParameterLocation.Header,
+					Type = SecuritySchemeType.ApiKey,
+					Scheme = "Bearer"
+				});
+				options.AddSecurityRequirement(new OpenApiSecurityRequirement
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference
+							{
+								Type = ReferenceType.SecurityScheme,
+								Id = "Bearer"
+							},
+							Scheme = "oauth2",
+							Name = "Bearer",
+							In = ParameterLocation.Header
+						},
+						new List<string>()
+					}
+				});
+			});
+
+
+			//auth through  token
+
+			/*            builder.Services.AddAuthentication(options =>
+						{
+							options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+							options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+						})
+							.AddJwtBearer(options =>
+							{
+								options.TokenValidationParameters = new TokenValidationParameters
+								{
+									ValidateIssuer = false,
+									ValidateAudience = false,
+									ValidateIssuerSigningKey = true,
+									IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+									ClockSkew = TimeSpan.Zero
+								};
+							});
+
+			*/
+
+			//auth through cookie
+			builder.Services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			})
+				.AddJwtBearer(options =>
+				{
+					options.Events = new JwtBearerEvents
+					{
+						OnMessageReceived = context =>
+						{
+							// Читаем JWT из куки
+							if (context.Request.Cookies.ContainsKey("access_token"))
+							{
+								context.Token = context.Request.Cookies["access_token"];
+							}
+							return Task.CompletedTask;
+						}
+					};
+
+
+
+					options.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = false,
+						ValidateAudience = false,
+						ValidateIssuerSigningKey = true,
+						IssuerSigningKey = new SymmetricSecurityKey(
+							Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+						),
+                        ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
-                    };
-                });
-
-
-
-            builder.WebHost.ConfigureKestrel(options =>
-            {
-                options.ListenAnyIP(5000); // HTTP
-/*                options.ListenAnyIP(5001, listenOptions =>
-                {
-                    listenOptions.UseHttps(); // HTTPS
-                });*/
-            });
+					};
+				});
 
 
 
 
 
-            //builder.WebHost.UseUrls("http://*:5173");
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowFrontend", policy =>
-                {
-                    policy
-                        .WithOrigins("http://localhost:7212", "https://localhost:7212", "http://client:80", "http://localhost:8080") // обе версии
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
-                });
-            });
 
-
-            //errors convertor to readeable for user way
-            builder.Services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.InvalidModelStateResponseFactory = context =>
-                {
-                    var errors = context.ModelState
-                        .Where(e => e.Value?.Errors.Count > 0)
-                        .SelectMany(x => x.Value!.Errors)
-                        .Select(x => x.ErrorMessage)
-                        .ToList();
-
-                    var joined = string.Join(" | ", errors);
-
-                    return new BadRequestObjectResult(new { message = joined });
-                };
-            });
+			builder.WebHost.ConfigureKestrel(options =>
+			{
+				options.ListenAnyIP(5001, listenOptions =>
+				{
+					listenOptions.UseHttps(); // HTTPS
+				});
+			});
 
 
 
-            var app = builder.Build();
-
-            app.UseCors("AllowFrontend");
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-            app.UseRouting();
-
-            app.UseHttpsRedirection();
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
 
 
+			//builder.WebHost.UseUrls("http://*:5173");
+			builder.Services.AddCors(options =>
+			{
 
-            app.MapControllers();
+				options.AddPolicy("AllowFrontend", policy =>
+				{
+					policy
+						.WithOrigins("https://localhost:7212", "https://tazzker.com")
+						.AllowAnyHeader()
+						.AllowAnyMethod()
+						.AllowCredentials();
+				});
+			});
 
-            app.Run();
-        }
-    }
+
+			//errors convertor to readeable for user way
+			builder.Services.Configure<ApiBehaviorOptions>(options =>
+			{
+				options.InvalidModelStateResponseFactory = context =>
+				{
+					var errors = context.ModelState
+						.Where(e => e.Value?.Errors.Count > 0)
+						.SelectMany(x => x.Value!.Errors)
+						.Select(x => x.ErrorMessage)
+						.ToList();
+
+					var joined = string.Join(" | ", errors);
+
+					return new BadRequestObjectResult(new { message = joined });
+				};
+			});
+
+
+
+			var app = builder.Build();
+
+			// Configure the HTTP request pipeline.
+			if (app.Environment.IsDevelopment())
+			{
+				app.UseSwagger();
+				app.UseSwaggerUI();
+			}
+			app.UseRouting();
+			app.UseCors("AllowFrontend");
+
+			app.UseHttpsRedirection();
+			app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+			app.UseAuthentication();
+			app.UseAuthorization();
+
+
+
+			app.MapControllers();
+
+			app.Run();
+		}
+	}
 }

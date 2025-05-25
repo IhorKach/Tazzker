@@ -32,6 +32,7 @@ namespace Tazzker.Client.Data.LocalDb
         public async Task AddOrUpdateAsync(ListModel item)
         {
             item.UpdatedAt = DateTime.UtcNow;
+            item.IsSynced = false;
             await _db.AddAsync(StoreName, item);
         }
 
@@ -42,9 +43,7 @@ namespace Tazzker.Client.Data.LocalDb
             if (list is null)
                 return;
             list.IsDeleted = true;
-            list.IsSynced = false;
-            list.UpdatedAt = DateTime.UtcNow;
-
+            list.PermDeleted = true;
             await AddOrUpdateAsync(list);
         }
 

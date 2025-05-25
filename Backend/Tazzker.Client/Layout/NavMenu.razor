@@ -1,4 +1,4 @@
-﻿<nav class="flex flex-col p-4 space-y-2">
+﻿@* <nav class="flex flex-col p-4 space-y-2">
     <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="/" Match="NavLinkMatch.All">Home</NavLink>
     <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="counter">Counter</NavLink>
     <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="weather">Weather</NavLink>
@@ -11,3 +11,40 @@
     <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="calendar">Calendar</NavLink>
     <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="trash">Trash</NavLink>
 </nav>
+ *@
+<nav class="flex flex-col p-4 space-y-2 text-sm">
+    <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="/" Match="NavLinkMatch.All">🏠 Главная</NavLink>
+    <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="inbox">📥 Инбокс</NavLink>
+    <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="lists">📋 Списки</NavLink>
+    <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="notes">📝 Заметки</NavLink>
+    <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="calendar">📅 Календарь</NavLink>
+    <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="trash">🗑 Корзина</NavLink>
+
+    <!-- Dev Pages (в конце, неакцентно) -->
+    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="counter">Counter</NavLink>
+    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="weather">Weather</NavLink>
+    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="devtest">DevTest</NavLink>
+    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="test">Test</NavLink>
+    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="auth">Auth</NavLink>
+</nav>
+<div class="mt-auto pt-4 border-t border-yellow-300">
+    <button class="w-full text-left text-red-600 hover:text-red-800 px-3 py-2 rounded transition-all"
+            @onclick="Logout">
+        🚪 Выйти
+    </button>
+</div>
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@code {
+    private async Task Logout()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        await Http.SendAsync(request);
+        Nav.NavigateTo("/auth", forceLoad: true);
+        await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "false");
+
+    }
+}

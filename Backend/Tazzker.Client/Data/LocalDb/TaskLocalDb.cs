@@ -4,7 +4,6 @@ using Tazzker.Client.Data.Models;
 
 namespace Tazzker.Client.Data.LocalDb
 {
-
     public class TaskLocalDb : ILocalDb<TaskModel>
     {
         private readonly IndexedDbBridge _db;
@@ -30,17 +29,16 @@ namespace Tazzker.Client.Data.LocalDb
         public async Task AddOrUpdateAsync(TaskModel item)
         {
             item.UpdatedAt = DateTime.UtcNow;
-            await _db.AddAsync(StoreName, item);
+            item.IsSynced = false;
+			await _db.AddAsync(StoreName, item);
         }
 
         public async Task SoftDeleteAsync(Guid id)
         {
             var task = await GetByIdAsync(id);
             if (task is null) return;
-
+            task.PermDeleted = true;
             task.IsDeleted = true;
-            task.IsSynced = false;
-            task.UpdatedAt = DateTime.UtcNow;
 
             await AddOrUpdateAsync(task);
         }

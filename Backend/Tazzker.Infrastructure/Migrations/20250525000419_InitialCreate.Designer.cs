@@ -12,7 +12,7 @@ using Tazzker.Infrastructure.Contexts;
 namespace Tazzker.Infrastructure.Migrations
 {
     [DbContext(typeof(TazzkerDbContext))]
-    [Migration("20250426043043_InitialCreate")]
+    [Migration("20250525000419_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

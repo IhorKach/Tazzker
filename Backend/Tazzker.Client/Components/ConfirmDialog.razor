@@ -1,0 +1,27 @@
+﻿@if (Show)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 transition-opacity duration-150"
+         style="backdrop-filter: blur(6px);">
+
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
+            <h2 class="text-lg font-semibold text-yellow-800 mb-2">Подтвердите действие</h2>
+            <p class="text-sm text-gray-700 mb-4">@Message</p>
+
+            <div class="flex justify-center gap-4">
+                <button class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded"
+                        @onclick="() => OnConfirm.InvokeAsync(true)">
+                    Подтвердить
+                </button>
+                <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+                        @onclick="() => OnConfirm.InvokeAsync(false)">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+}
+@code {
+    [Parameter] public string Message { get; set; } = "Вы уверены?";
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback<bool> OnConfirm { get; set; }
+}
