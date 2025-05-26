@@ -59,7 +59,7 @@ window.isOnline = () => navigator.onLine;
 
 
 
-window.resizeTextareas = () => {
+/*window.resizeTextareas = () => {
     console.log('[resizeTextareas] вызвана');
 
     const elements = document.querySelectorAll('textarea');
@@ -70,8 +70,45 @@ window.resizeTextareas = () => {
         el.style.height = el.scrollHeight + 'px';
     });
 };
+*/
+
+window.resizeTextareas = () => {
+    console.log('[resizeTextareas] вызвана');
+
+    const elements = document.querySelectorAll('textarea');
+    console.log(`[resizeTextareas] найдено ${elements.length} textarea`);
+
+    elements.forEach((el, index) => {
+        console.log(`\n[${index}] value:`, JSON.stringify(el.value));
+        console.log(`[${index}] scrollHeight до: ${el.scrollHeight}`);
+        console.log(`[${index}] offsetHeight до: ${el.offsetHeight}`);
+
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight + 12) + 'px';
+
+        console.log(`[${index}] scrollHeight после: ${el.scrollHeight}`);
+        console.log(`[${index}] offsetHeight после: ${el.offsetHeight}`);
+    });
+};
 
 
 
 
+window.resizeSingleTextarea = (el) => {
+    if (!el) {
+        console.log('❌ Элемент не передан в resizeSingleTextarea');
+        return;
+    }
 
+    console.log('✅ Resize для:', el.value);
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+};
+
+
+
+
+window.getApiBaseUrl = () => {
+    const tag = document.querySelector('meta[name="api-base-url"]');
+    return tag?.content || "/";
+};

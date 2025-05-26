@@ -1,6 +1,13 @@
-﻿@inherits LayoutComponentBase
+﻿@* @inherits LayoutComponentBase
 
 <!-- Занимает весь экран, без сайдбара -->
 <div class="w-full h-screen overflow-hidden">
+    @Body
+</div>
+ *@
+ @inherits LayoutComponentBase
+
+<!-- Обычный флоу документа, с прокруткой -->
+<div class="min-h-screen w-full bg-yellow-50">
     @Body
 </div>

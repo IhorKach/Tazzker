@@ -51,7 +51,7 @@ namespace TazzkerAPI
 
 
 
-            builder.Services.AddHttpContextAccessor();
+			builder.Services.AddHttpContextAccessor();
 			builder.Services.AddScoped<IUserContext, UserContext>();
 
 			builder.Services.AddControllers();
@@ -144,8 +144,8 @@ namespace TazzkerAPI
 						IssuerSigningKey = new SymmetricSecurityKey(
 							Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
 						),
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.Zero
+						ValidateLifetime = true,
+						ClockSkew = TimeSpan.Zero
 					};
 				});
 
@@ -164,7 +164,7 @@ namespace TazzkerAPI
 
 
 
-
+			var frontendUrls = builder.Configuration.GetSection("ServerConfig:FrontendUrls").Get<string[]>();
 
 			//builder.WebHost.UseUrls("http://*:5173");
 			builder.Services.AddCors(options =>
@@ -173,7 +173,8 @@ namespace TazzkerAPI
 				options.AddPolicy("AllowFrontend", policy =>
 				{
 					policy
-						.WithOrigins("https://localhost:7212", "https://tazzker.com")
+						//.WithOrigins("https://localhost:7212", "https://tazzker.com", "https://10.0.0.84:7212", "https://10.0.0.113:7212")
+						.WithOrigins(frontendUrls!)
 						.AllowAnyHeader()
 						.AllowAnyMethod()
 						.AllowCredentials();

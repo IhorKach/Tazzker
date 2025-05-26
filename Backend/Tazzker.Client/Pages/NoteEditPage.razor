@@ -9,54 +9,95 @@
 @inject ILocalDb<NoteModel> NoteDb
 @inject IJSRuntime JS
 
-
-<div class="absolute inset-0 flex flex-col bg-yellow-50">
+@* absolute inset-0 *@
+<div class="min-h-screen flex flex-col bg-yellow-50">
 	@{
 		var backLabel = "< Back";
 	}
 	<!-- Навигация -->
-	@* <div class="p-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm"> *@
 	<div class="p-4 bg-yellow-50 border-b justify-between flex items-center gap-4 shadow-sm">
-		<button @onclick="GoBack"
-				class="text-yellow-600  hover:text-yellow-800 font-semibold text-sm">
-			@backLabel
-		</button>
-		<span class="text-xs text-gray-400 italic">
-			Last updated: @note.UpdatedAt.ToLocalTime().ToString("g")
-		</span>
+		<button @onclick="GoBack" class="text-yellow-600  hover:text-yellow-800 font-semibold text-sm"> @backLabel</button>
+		<span class="text-xs text-gray-400 italic"> Last updated: @note.UpdatedAt.ToLocalTime().ToString("g")</span>
+
 	</div>
 
 	<!-- Контент -->
 	<div class="flex-1 overflow-auto px-4 py-6 flex flex-col gap-6 max-w-screen-md w-full mx-auto">
 
 		<!-- Заголовок -->
-		<div @ref="TitleRef"
+@* 		<div @ref="TitleRef"
 			 data-note-title
 			 contenteditable="true"
 			 @oninput="OnTitleInput"
 			 @onblur="SaveTitle"
 			 class="text-2xl font-bold w-full bg-yellow-100 border-2 border-yellow-400 rounded p-4 text-gray-900 focus:outline-none shadow leading-tight">
-		</div>
+		</div> *@
+
+
+
+
+@* 
+		<textarea maxlength="@TitleMaxLength"
+				  class="min-h-[60vh] whitespace-pre-wrap w-full bg-white border border-yellow-300 rounded-xl p-4 text-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 leading-relaxed resize-none overflow-hidden"
+				  rows="1"
+				  @bind="note.Title"
+				  @oninput="Resize"
+				  @onblur="() => SaveNote()">
+										</textarea>
+ *@
+
+		<textarea maxlength="@TitleMaxLength"
+				  class="min-h-[60vh] whitespace-pre-wrap w-full bg-white border border-yellow-300 rounded-xl p-4 text-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 leading-relaxed resize-none overflow-hidden"
+				  rows="1"
+				  value="@note.Title"
+				  @oninput="HandleTitleInput"
+				  @onblur="() => SaveNote()">
+</textarea>
+
+
 
 		<div class="text-sm text-gray-500 text-right">
-			@TitleLength / @MaxTitleLength
+			@note.Title.Length / @TitleMaxLength
 		</div>
 
 		<!-- Тело -->
-		<div contenteditable="true"
-			 @ref="BodyRef"
-			 data-note-body
-			 @oninput="OnBodyInput"
-			 @onblur="SaveBody"
-			 class="min-h-[60vh] whitespace-pre-wrap w-full bg-white border border-yellow-300 rounded-xl p-4 text-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 leading-relaxed">
-		</div>
+		@* 		<div contenteditable="true"
+		@ref="BodyRef"
+		data-note-body
+		@oninput="OnBodyInput"
+		@onblur="SaveBody"
+		class="min-h-[60vh] whitespace-pre-wrap w-full bg-white border border-yellow-300 rounded-xl p-4 text-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 leading-relaxed">
+		</div> *@
+
+
+		@* class="text-lg font-semibold border-b w-full focus:outline-none focus:border-yellow-500 resize-none overflow-hidden leading-snug" *@
+@* 		<textarea maxlength="@BodyMaxLength"
+				  class="min-h-[60vh] whitespace-pre-wrap w-full bg-white border border-yellow-300 rounded-xl p-4 text-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 leading-relaxed resize-none overflow-hidden"
+				  rows="1"
+				  @bind="note.Body"
+				  @oninput="Resize"
+				  @onblur="() => SaveNote()">
+										</textarea> *@
+
+
+		@* min-h-[60vh] *@
+<textarea maxlength="@BodyMaxLength"
+		  class=" whitespace-pre-wrap w-full bg-white border border-yellow-300 rounded-xl p-4 text-gray-800 shadow focus:outline-none focus:ring-2 focus:ring-yellow-500 leading-relaxed resize-none overflow-hidden"
+		  rows="1"
+		  value="@note.Body"
+		  @oninput="HandleBodyInput"
+		  @onblur="() => SaveNote()">
+</textarea>
 
 		<div class="text-sm text-gray-500 text-right">
-			@BodyLength / @MaxBodyLength
+			 @note.Body.Length / @BodyMaxLength
 		</div>
 
 	</div>
 </div>
+
+
+
 
 
 
@@ -67,80 +108,109 @@
 	[Parameter] public Guid Id { get; set; }
 	private NoteModel note = new();
 
+	private int GetBodyLength() => note.Body.Count();
+	private int GetTitleLength() => note.Title.Count();
+
+	private int BodyMaxLength = 4096;
+	private int TitleMaxLength = 128;
+
+	private async Task HandleTitleInput(ChangeEventArgs e)
+	{
+		note.Title = e.Value?.ToString() ?? "";
+		await JS.InvokeVoidAsync("resizeTextareas");
+	}
+	private async Task HandleBodyInput(ChangeEventArgs e)
+	{
+		note.Body = e.Value?.ToString() ?? "";
+		await JS.InvokeVoidAsync("resizeTextareas");
+	}
+
+
 	protected override async Task OnInitializedAsync()
 	{
 		var found = await App.GetNoteById(Id);
-		
+
 		note = found ?? new NoteModel { Id = Id, Title = "", Body = "" };
 
+		// StateHasChanged();
 		// Установим значение contenteditable полей сразу после загрузки
-		await Task.Yield(); // Ждём пока компоненты появятся
-		await JS.InvokeVoidAsync("noteInterop.setContent", "[data-note-title]", note.Title);
-		await JS.InvokeVoidAsync("noteInterop.setContent", "[data-note-body]", note.Body);
+		// await Task.Yield(); Ждём пока компоненты появятся
+		// await JS.InvokeVoidAsync("noteInterop.setContent", "[data-note-title]", note.Title);
+		// await JS.InvokeVoidAsync("noteInterop.setContent", "[data-note-body]", note.Body);
 
 
-		var titleText = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
-		TitleLength = titleText.Length;
+		// var titleText = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
+		// TitleLength = titleText.Length;
 
-		var bodyText = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
-		BodyLength = bodyText.Length;
+		// var bodyText = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
+		// BodyLength = bodyText.Length;
 
 		StateHasChanged();
+
+		await Task.Yield();
+		await JS.InvokeVoidAsync("resizeTextareas");
 	}
+
+
 
 	private void GoBack() => Nav.NavigateTo("/notes");
 
 	private async Task SaveNote() => await App.SaveNote(note);
 
+	private async Task Resize(ChangeEventArgs _)
+	{
+		await JS.InvokeVoidAsync("resizeTextareas");
+	}
+
 	//---------------------------------------below editable div code related only---------------------//
 
-	ElementReference TitleRef;
+	// ElementReference TitleRef;
 
-	private int MaxTitleLength = 64;
-	private int TitleLength = 0;
-
-
-	private async Task OnTitleInput(ChangeEventArgs e)
-	{
-		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
-		TitleLength = text.Length;
-
-		if (TitleLength > MaxTitleLength)
-		{
-			await JS.InvokeVoidAsync("noteInterop.preventLastInput", TitleRef);
-			TitleLength = MaxTitleLength;
-		}
-	}
-	private async Task SaveTitle(FocusEventArgs e)
-	{
-		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
-		note.Title = text.Trim();
-		await SaveNote();
-	}
+	// private int MaxTitleLength = 64;
+	// private int TitleLength = 0;
 
 
-	ElementReference BodyRef;
+	// private async Task OnTitleInput(ChangeEventArgs e)
+	// {
+	// 	var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
+	// 	TitleLength = text.Length;
 
-	private int MaxBodyLength = 4096;
-	private int BodyLength = 0;
+	// 	if (TitleLength > MaxTitleLength)
+	// 	{
+	// 		await JS.InvokeVoidAsync("noteInterop.preventLastInput", TitleRef);
+	// 		TitleLength = MaxTitleLength;
+	// 	}
+	// }
+	// private async Task SaveTitle(FocusEventArgs e)
+	// {
+	// 	var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-title]");
+	// 	note.Title = text.Trim();
+	// 	await SaveNote();
+	// }
 
-	private async Task OnBodyInput(ChangeEventArgs e)
-	{
-		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
-		BodyLength = text.Length;
 
-		if (BodyLength > MaxBodyLength)
-		{
-			await JS.InvokeVoidAsync("noteInterop.preventLastInput", BodyRef);
-			BodyLength = MaxBodyLength;
-		}
-	}
+	// ElementReference BodyRef;
 
-	private async Task SaveBody(FocusEventArgs e)
-	{
-		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
-		note.Body = text.Trim();
-		await SaveNote();
-	}
+	// private int MaxBodyLength = 4096;
+	// private int BodyLength = 0;
+
+	// private async Task OnBodyInput(ChangeEventArgs e)
+	// {
+	// 	var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
+	// 	BodyLength = text.Length;
+
+	// 	if (BodyLength > MaxBodyLength)
+	// 	{
+	// 		await JS.InvokeVoidAsync("noteInterop.preventLastInput", BodyRef);
+	// 		BodyLength = MaxBodyLength;
+	// 	}
+	// }
+
+	// private async Task SaveBody(FocusEventArgs e)
+	// {
+	// 	var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-note-body]");
+	// 	note.Body = text.Trim();
+	// 	await SaveNote();
+	// }
 }
 

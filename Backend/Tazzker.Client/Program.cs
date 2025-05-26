@@ -31,11 +31,21 @@ namespace Tazzker.Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5001/") });
+			//var apiBase = builder.Configuration["ApiBaseUrl"];
 
-            var jsRuntime = (IJSRuntime)builder.Services.BuildServiceProvider().GetRequiredService<IJSRuntime>();
+			//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBase!) });
+			/*"https://10.0.0.113:5001/"*//*"https://localhost:5001/"*/
 
-            await jsRuntime.InvokeVoidAsync("indexedDbBridge.safeInitDb", "TazzkerDb", 1, new[] { "Lists", "Sublists", "Tasks", "Notes" });
+			
+
+
+			var jsRuntime = (IJSRuntime)builder.Services.BuildServiceProvider().GetRequiredService<IJSRuntime>();
+
+			var apiBase = await jsRuntime.InvokeAsync<string>("getApiBaseUrl");
+
+			builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBase) });
+
+			await jsRuntime.InvokeVoidAsync("indexedDbBridge.safeInitDb", "TazzkerDb", 1, new[] { "Lists", "Sublists", "Tasks", "Notes" });
 
 
             await builder.Build().RunAsync();
