@@ -127,12 +127,28 @@
     <!-- Контент -->
     <div class="flex flex-col h-full ml-0">
         <!-- Верхняя панель -->
-        <div class="bg-yellow-200 text-yellow-900 flex items-center justify-between px-4 py-2 shadow z-10 relative">
-            <button class="text-2xl font-bold z-10" @onclick="ToggleNav">☰</button>
+        @* flex items-center justify-between *@
+        <div class="bg-yellow-200 text-yellow-900 px-4 py-2 shadow z-10 relative">
 
-            <div class="absolute inset-0 flex justify-center items-center pointer-events-none">
-                <h1 class="text-xl font-bold">Tazzker</h1>
+            @* text-2xl font-bold z-10 *@
+            <button class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold z-20" @onclick="ToggleNav">☰</button>
+
+@*             <div class="absolute inset-0 flex justify-center items-center pointer-events-none">
+                 <h1 class="text-xl font-bold">Tazzker</h1>
+                <img src="logo.png" alt="Tazzker Logo"
+                     class="h-10 w-auto max-w-[200px] max-h-[40px]" />
+
+            </div> *@
+            <div class="flex items-center justify-center">
+                <img src="logo.png"
+                     alt="Tazzker Logo"
+                     style="height: 40px; width: auto; object-fit: contain;" />
             </div>
+
+
+
+
+
         </div>
 
 

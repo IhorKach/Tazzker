@@ -30,16 +30,24 @@
 	<div class="px-4 py-3 bg-yellow-50 border-b border-yellow-200 flex flex-col items-center gap-1 shadow-sm">
 
 		<!-- Редактируемое поле -->
-		<div @ref="ListTitleRef"
+@* 		<div @ref="ListTitleRef"
 			 contenteditable="true"
 			 data-list-title
 			 @oninput="OnListTitleInput"
 			 @onblur="SaveListTitle"
 			 class="text-xl font-bold text-yellow-800 bg-transparent border-b border-yellow-400 focus:outline-none text-center w-full max-w-xs break-words px-2 py-1 rounded">
-		</div>
+		</div> *@
+
+		<textarea maxlength="@TitleMaxLength"
+				  class="text-xl font-bold text-yellow-800 bg-transparent border-b border-yellow-400 focus:outline-none text-center w-full max-w-xs break-words px-2 py-1 rounded resize-none overflow-hidden"
+				  rows="1"
+				  value="@list.Title"
+				  @oninput="HandleTitleInput"
+				  @onblur="() => SaveList(list)">
+	</textarea>
 
 		<!-- Счётчик -->
-		<div class="text-xs text-gray-500">@TitleLength / @MaxLength</div>
+		<div class="text-xs text-gray-500">@list.Title.Length / @TitleMaxLength</div>
 	</div>
 
 
@@ -139,6 +147,7 @@
 	[Parameter] public Guid Id { get; set; }
 	private ListModel list = new();
 
+	private int TitleMaxLength = 128;
 	private bool showConfirmModal = false;
 	private Guid? sublistToDelete = null;
 
@@ -171,6 +180,12 @@
 		await RefreshSublists();
 	}
 
+
+	private async Task HandleTitleInput(ChangeEventArgs e)
+	{
+		list.Title = e.Value?.ToString() ?? "";
+		await JS.InvokeVoidAsync("resizeTextareas");
+	}
 
 
 	private DateTime GetLastUpdate()
@@ -268,6 +283,10 @@
 	private async Task SaveSublist(SublistModel sublist)
 	{
 		await App.SaveSublist(sublist);
+	}
+	private async Task SaveList(ListModel list)
+	{
+		await App.SaveList(list);
 	}
 
 	private async Task AddTask(Guid sublistId)

@@ -1,13 +1,13 @@
 ﻿@page "/"
-@using System.Globalization
 @inject NavigationManager Nav
 
-<div class="px-6 py-10 max-w-2xl mx-auto text-center">
-    <h1 class="text-3xl font-bold text-yellow-800 mb-3">🐝 Welcome!</h1>
-    <p class="text-yellow-900 text-lg">Today: @DateTime.Now.ToString("D", CultureInfo.CurrentCulture)</p>
-    @{var url = "/inbox";}
-    <button class="mt-6 inline-flex items-center gap-2 text-yellow-800 hover:text-yellow-900 font-medium text-base underline underline-offset-4 transition-all"
-            @onclick="() => Nav.NavigateTo(url)">
-        ➡ Go to tasks
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40vh; padding: 2rem; color: #78350f;">
+    <div style="font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; text-align: center;">Mind</div>
+    <div style="font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; text-align: center;">Your</div>
+    <div style="font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; text-align: center;">Beezzness</div>
+        @{var url = "/inbox";}
+    <button @onclick="() => Nav.NavigateTo(url)"
+            style="margin-top: 4rem; background-color: #facc15; color: white; font-weight: 600; padding: 0.75rem 2rem; border-radius: 9999px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); font-size: 1rem; border: none; cursor: pointer;">
+        Let’s buzz...
     </button>
 </div>

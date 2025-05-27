@@ -1,5 +1,6 @@
 ﻿@page "/auth"
 @using System.Net.Http.Json
+@using System.Text.RegularExpressions
 @using Tazzker.Client.Services
 @using Tazzker.Client.Data.Models
 
@@ -24,46 +25,107 @@
 
 <!-- Форма -->
 <div class="mt-6 max-w-sm mx-auto bg-white p-6 rounded shadow space-y-4">
-  @*   @if (!isLogin)
-    {
-        <InputText @bind-Value="Email" class="w-full border p-2 rounded" placeholder="Email" />
-        <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Имя пользователя" />
-    }
-    else
-    { *@
-        <InputText @bind-Value="Username" class="w-full border p-2 rounded" placeholder="Username" />
-    @* } *@
-    <InputText @bind-Value="Password" class="w-full border p-2 rounded" placeholder="Password" />
-     @* <InputText @bind-Value="ConfirmPassword" class="w-full border p-2 rounded" placeholder="Подтвердите пароль" /> *@
+
+        <input type="text"
+            maxlength="32"
+            class="w-full border p-2 rounded"
+            placeholder="Username"
+            value="@Username"
+            @oninput="OnUsernameChanged"/>
+
+           <input type="password"
+               maxlength="32"
+               class="w-full border p-2 rounded"
+               placeholder="Password"
+               value="@Password"
+               @oninput="OnPasswordChanged"/>
 
     <button @onclick="Submit"
+
             class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded">
         @(isLogin ? "Sign In" : "Sign up")
     </button>
 
-    @if (!string.IsNullOrWhiteSpace(Error))
+    @if (!string.IsNullOrWhiteSpace(Error) && (!string.IsNullOrEmpty(Username) || !string.IsNullOrEmpty(Password)))
     {
         <div class="text-red-600 text-sm text-center">@Error</div>
     }
+
 </div>
 
 @code {
     private bool isLogin = true;
-    // private string Email = "";
     private string Username = "";
     private string Password = "";
-    // private string ConfirmPassword = "";
+
     private string Error = "";
+
+
+    private void OnUsernameChanged(ChangeEventArgs e)
+    {
+        Username = e.Value?.ToString() ?? "";
+        ValidateInputs();
+    }
+
+    private void OnPasswordChanged(ChangeEventArgs e)
+    {
+        Password = e.Value?.ToString() ?? "";
+        ValidateInputs();
+    }
+
+
+    private void ValidateInputs()
+    {
+        if (string.IsNullOrWhiteSpace(Username))
+        {
+            Error = "Username cannot be empty.";
+            StateHasChanged();
+            return;
+        }
+
+        if (Username.Any(char.IsWhiteSpace))
+        {
+            Error = "Username cannot contain spaces.";
+            StateHasChanged();
+            return;
+        }
+
+        if (!Regex.IsMatch(Username, "^[a-zA-Z0-9_]+$"))
+        {
+            Error = "Only letters, numbers, and underscores are allowed.";
+            StateHasChanged();
+            return;
+        }
+
+        if (Username.Length < 3 || Username.Length > 20)
+        {
+            Error = "Username must be 3–20 characters.";
+            StateHasChanged();
+            return;
+        }
+
+        if (Password.Length < 6)
+        {
+            Error = "Password must be at least 6 characters.";
+            StateHasChanged();
+            return;
+        }
+
+        Error = ""; // всё валидно — убираем ошибку
+        StateHasChanged();
+    }
+
+
+
 
     private async Task Submit()
     {
+
+        ValidateInputs();
+        if (!string.IsNullOrWhiteSpace(Error)) return;
+
         Error = "";
 
-        // if (!isLogin && Password != ConfirmPassword)
-        // {
-        //     Error = "Пароли не совпадают.";
-        //     return;
-        // }
 
         if (!await JS.InvokeAsync<bool>("isOnline"))
         {
@@ -73,7 +135,7 @@
 
         object payload = isLogin
             ? new { Username, Password }
-            : new { /* Email, */ Username, Password };
+            : new { Username, Password };
 
         var url = isLogin ? "/api/auth/login" : "/api/auth/register";
 
