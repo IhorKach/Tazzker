@@ -112,7 +112,7 @@
 		var allTasks = await App.GetAllTasks();
 
 		taskMap = allTasks
-			.Where(t => t.DueTime.HasValue && !t.PermDeleted/* IsDeleted */)
+			.Where(t => t.DueTime.HasValue && !t.PermDeleted)
 			.GroupBy(t => t.DueTime!.Value.Date)
 			.ToDictionary(g => g.Key, g => g.ToList());
 

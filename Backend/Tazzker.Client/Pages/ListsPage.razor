@@ -8,7 +8,6 @@
 @inject SyncService SyncServ
 
 
- @* <h2 class="text-2xl font-bold mb-4 text-yellow-800 sticky top-0 bg-yellow-50 py-4 z-20"> *@
 <h2 class="text-3xl font-bold text-yellow-800 sticky top-0 z-20 bg-yellow-50 px-4 py-4 shadow mb-4">
 	📂 Lists
 </h2>
@@ -123,11 +122,9 @@ else
 
 	private async Task DeleteList(Guid listId)
 	{
-		// 1. Получаем все подсписки, связанные с этим списком
 		if (!sublistsByList.TryGetValue(listId, out var sublistIds))
 			sublistIds = new();
 
-		// 2. Находим все задачи, привязанные к этим подспискам
 		var tasksToDelete = tasks
 			.Where(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value))
 			.ToList();
@@ -137,22 +134,18 @@ else
 			await App.DeleteTask(task.Id);
 		}
 
-		// 3. Удаляем все подсписки
 		foreach (var subId in sublistIds)
 		{
 			await App.DeleteSublist(subId);
 		}
 
-		// 4. Удаляем сам список
 		await App.DeleteList(listId);
 
-		// 5. Обновляем состояние (чтобы список исчез из UI)
 		lists.RemoveAll(l => l.Id == listId);
 		sublists.RemoveAll(s => s.ListId == listId);
 		tasks.RemoveAll(t => t.SublistId.HasValue && sublistIds.Contains(t.SublistId.Value));
 		sublistsByList.Remove(listId);
 	}
-
 
 	private void Redirect(Guid listId) => Nav.NavigateTo($"/list/{listId}");
 }

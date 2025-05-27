@@ -1,38 +1,18 @@
-﻿@* <nav class="flex flex-col p-4 space-y-2">
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="/" Match="NavLinkMatch.All">Home</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="counter">Counter</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="weather">Weather</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="lists">Lists</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="devtest">DevTest</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="notes">Notes</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="test">Test</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="inbox">Inbox</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="auth">Auth</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="calendar">Calendar</NavLink>
-    <NavLink class="text-white hover:bg-gray-700 px-3 py-2 rounded" href="trash">Trash</NavLink>
-</nav>
- *@
-<nav class="flex flex-col p-4 space-y-2 text-sm">
+﻿<nav class="flex flex-col p-4 space-y-2 text-sm">
     <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="/" Match="NavLinkMatch.All">🏠 Home</NavLink>
     <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="inbox">📥 Inbox</NavLink>
     <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="lists">📋 Lists</NavLink>
     <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="notes">📝 Notes</NavLink>
     <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="calendar">📅 Calendar</NavLink>
-     @* <NavLink class="text-yellow-800 hover:bg-yellow-200 px-3 py-2 rounded transition-all" activeClass="bg-yellow-300 font-semibold" href="trash">🗑 Корзина</NavLink> *@
-
-    <!-- Dev Pages (в конце, неакцентно) -->
-@*     <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="counter">Counter</NavLink>
-    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="weather">Weather</NavLink>
-    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="devtest">DevTest</NavLink>
-    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="test">Test</NavLink>
-    <NavLink class="text-yellow-600 hover:bg-yellow-100 px-3 py-2 rounded text-xs" href="auth">Auth</NavLink> *@
 </nav>
+
 <div class="mt-auto pt-4 border-t border-yellow-300">
     <button class="w-full text-left text-red-600 hover:text-red-800 px-3 py-2 rounded transition-all"
             @onclick="Logout">
         🚪 Sign out
     </button>
 </div>
+
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IJSRuntime JS

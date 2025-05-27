@@ -60,45 +60,6 @@ namespace Tazzker.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TaskItems",
-                columns: table => new
-                {
-                    TaskId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ListId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ParentTaskId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Order = table.Column<float>(type: "real", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ReminderAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DueTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TaskItems", x => x.TaskId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TaskLists",
-                columns: table => new
-                {
-                    TaskListId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CalendarDay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TaskLists", x => x.TaskListId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Tasks",
                 columns: table => new
                 {
@@ -145,12 +106,6 @@ namespace Tazzker.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Sublists");
-
-            migrationBuilder.DropTable(
-                name: "TaskItems");
-
-            migrationBuilder.DropTable(
-                name: "TaskLists");
 
             migrationBuilder.DropTable(
                 name: "Tasks");

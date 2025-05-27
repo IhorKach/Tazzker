@@ -3,10 +3,8 @@
 @if (TaskItem != null)
 {
 	<div class="flex items-start gap-2 p-3 rounded-xl bg-white shadow border border-yellow-400 w-full relative @(TaskItem?.IsCompleted == true ? " opacity-50" : "")">
-		<!-- Чекбокс -->
 		<input type="checkbox" class="mt-1 accent-yellow-500 w-5 h-5 shrink-0" checked="@TaskItem!.IsCompleted" @onchange="ToggleCompleted" />
 
-		<!-- Многострочный текст -->
 		@if (editMode)
 		{
 			<textarea @ref="TextRef"
@@ -22,17 +20,10 @@
 		}
 		else
 		{
-			@*//last good one
-				<div class="flex-grow text-sm text-gray-800 leading-snug cursor-pointer
-             break-all whitespace-break-spaces overflow-hidden"
-				 style="word-break: break-word; overflow-wrap: break-word; max-width: 100%;"
-				 @onclick="EnableEdit">
-				@TaskItem.Title
-			</div> *@
 			<div class="flex-grow text-sm leading-snug cursor-pointer break-all whitespace-break-spaces overflow-hidden
             @(TaskItem?.IsCompleted == true ? " text-gray-400 line-through" : " text-gray-800")"
 				 @onclick="EnableEdit">
-				@TaskItem.Title
+				@TaskItem!.Title
 			</div>
 
 
@@ -47,7 +38,6 @@
 			🗑
 		</button>
 
-		<!--кнопка-->
 		@if (showDatePicker)
 		{
 			<div class="absolute top-full right-0 mt-1 w-60 bg-white border border-gray-300 rounded shadow p-3 z-10">
@@ -116,7 +106,6 @@
 	private async Task DeleteTask()
 	{
 		if (TaskItem == null) return;
-		// TaskItem.IsDeleted = true;
 		TaskItem.IsSynced = false;
 		TaskItem.PermDeleted = true;
 		await OnChanged.InvokeAsync(TaskItem);

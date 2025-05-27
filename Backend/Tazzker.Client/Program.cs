@@ -22,7 +22,6 @@ namespace Tazzker.Client
 			builder.Services.AddScoped<ILocalDb<SublistModel>, SublistLocalDb>();
             builder.Services.AddScoped<ILocalDb<TaskModel>, TaskLocalDb>();
 
-            //builder.Services.AddScoped<TokenService>();
             builder.Services.AddScoped<SyncService>();
             builder.Services.AddScoped<ModelMethods>();
             builder.Services.AddSingleton<SyncStatusService>();
@@ -30,13 +29,6 @@ namespace Tazzker.Client
 
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
-
-			//var apiBase = builder.Configuration["ApiBaseUrl"];
-
-			//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBase!) });
-			/*"https://10.0.0.113:5001/"*//*"https://localhost:5001/"*/
-
-			
 
 
 			var jsRuntime = (IJSRuntime)builder.Services.BuildServiceProvider().GetRequiredService<IJSRuntime>();
@@ -52,4 +44,3 @@ namespace Tazzker.Client
         }
     }
 }
-            // localurlhttps://localhost:7164/

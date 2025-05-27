@@ -3,43 +3,24 @@
 
 @if (NoteItem != null)
 {
-	@*	<div class="bg-white rounded-xl p-4 shadow border border-yellow-300 hover:shadow-md transition cursor-pointer"
+	<div class="bg-white rounded-xl p-4 shadow border border-yellow-300 hover:shadow-md transition cursor-pointer"
 		 @onclick="() => OnClick.InvokeAsync(NoteItem.Id)">
 
-		<!-- Верхняя строка -->
- 		<div class="flex justify-between items-start mb-2">
-			<h3 class="text-lg font-semibold text-yellow-800 truncate">
-				@NoteItem.Title
-			</h3>
-
-			<button class="text-yellow-600 hover:text-red-600 transition-colors text-sm"
-			@onclick:stopPropagation
-					@onclick="() => OnDelete.InvokeAsync(NoteItem.Id)">
-				✕
-			</button>
-		</div> *@
-
-		<div class="bg-white rounded-xl p-4 shadow border border-yellow-300 hover:shadow-md transition cursor-pointer"
-			 @onclick="() => OnClick.InvokeAsync(NoteItem.Id)">
-
-			<!-- Заголовок + Крестик -->
-			<div class="flex justify-between items-start mb-2"
+		<!-- Title + Delete Button -->
+		<div class="flex justify-between items-start mb-2"
 			 style="word-break: break-word; overflow-wrap: anywhere;">
 			<h3 class="text-lg font-semibold text-yellow-800 break-words mr-2">@NoteItem.Title</h3>
-				<button class="text-red-500 hover:text-red-700 font-bold px-1"
-						title="Удалить"
-				@onclick:stopPropagation
+			<button class="text-red-500 hover:text-red-700 font-bold px-1"
+			@onclick:stopPropagation
 					@onclick="() => OnDelete.InvokeAsync(NoteItem.Id)">
-					Х
-				</button>
-			</div>
+				Х
+			</button>
+		</div>
 
 		<div class="flex justify-between text-xs text-gray-500 italic">
 			<span>Обновлено: @NoteItem.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")</span>
-		  @* <p class="text-sm text-gray-600 italic">Обновлено: @NoteItem.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")</p> *@
-		  </div>
+		</div>
 	</div>
-
 }
 
 @code {

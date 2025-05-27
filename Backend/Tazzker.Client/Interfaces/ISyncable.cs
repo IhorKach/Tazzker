@@ -4,7 +4,6 @@
     {
         public Guid Id { get; set; }
         public bool IsSynced { get; set; }
-        //public bool IsDeleted { get; set; }
         public bool PermDeleted { get; set; }
     }
 }

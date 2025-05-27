@@ -16,7 +16,7 @@ namespace Tazzker.Client.Data.LocalDb
         public async Task<List<NoteModel>> GetAllAsync()
         {
             var all = await _db.GetAllAsync<NoteModel>(StoreName);
-            return all.Where(x => !x.PermDeleted/*IsDeleted*/).OrderByDescending(x => x.UpdatedAt).ToList();
+            return all.Where(x => !x.PermDeleted).OrderByDescending(x => x.UpdatedAt).ToList();
         }
 
         public async Task<NoteModel?> GetByIdAsync(Guid id)
@@ -37,7 +37,6 @@ namespace Tazzker.Client.Data.LocalDb
             var note = await GetByIdAsync(id);
             if (note is null) return;
 
-            //note.IsDeleted = true;
             note.PermDeleted = true;
             await AddOrUpdateAsync(note);
         }

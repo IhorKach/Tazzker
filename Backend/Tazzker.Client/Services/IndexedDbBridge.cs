@@ -17,17 +17,16 @@ namespace Tazzker.Client.Services
         }
 
 
-
         private bool _initialized = false;
 
         public async Task EnsureInitializedAsync()
         {
             if (_initialized) return;
 
-            var hasStores = await HasAnyStoresAsync(); // или просто попробуй что-то прочитать
+            var hasStores = await HasAnyStoresAsync();
             if (!hasStores)
             {
-                await InitAsync(); // твоя ручная инициализация всех object stores
+                await InitAsync();
             }
 
             _initialized = true;

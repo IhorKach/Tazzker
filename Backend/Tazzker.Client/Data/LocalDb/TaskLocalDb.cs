@@ -17,7 +17,7 @@ namespace Tazzker.Client.Data.LocalDb
         public async Task<List<TaskModel>> GetAllAsync()
         {
             var all = await _db.GetAllAsync<TaskModel>(StoreName);
-            return all.Where(x => !x.PermDeleted/*IsDeleted*/).OrderBy(x => x.Order).ToList();
+            return all.Where(x => !x.PermDeleted).OrderBy(x => x.Order).ToList();
         }
 
         public async Task<TaskModel?> GetByIdAsync(Guid id)
@@ -38,7 +38,6 @@ namespace Tazzker.Client.Data.LocalDb
             var task = await GetByIdAsync(id);
             if (task is null) return;
             task.PermDeleted = true;
-            //task.IsDeleted = true;
 
             await AddOrUpdateAsync(task);
         }

@@ -10,9 +10,7 @@
 
 @if (list != null)
 {
-
-	<!-- Навигация -->
-	@* <div class="p-4 mb-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20"> *@
+	<!-- Navigation -->
 	<div class="p-4 mb-4 bg-yellow-50 border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20">
 		@{
 			var backLabel = "< Back";
@@ -26,18 +24,10 @@
 		</span>
 	</div>
 
-	<!-- Заголовок -->
+	<!-- Title -->
 	<div class="px-4 py-3 bg-yellow-50 border-b border-yellow-200 flex flex-col items-center gap-1 shadow-sm">
 
-		<!-- Редактируемое поле -->
-@* 		<div @ref="ListTitleRef"
-			 contenteditable="true"
-			 data-list-title
-			 @oninput="OnListTitleInput"
-			 @onblur="SaveListTitle"
-			 class="text-xl font-bold text-yellow-800 bg-transparent border-b border-yellow-400 focus:outline-none text-center w-full max-w-xs break-words px-2 py-1 rounded">
-		</div> *@
-
+		<!-- List title textarea -->
 		<textarea maxlength="@TitleMaxLength"
 				  class="text-xl font-bold text-yellow-800 bg-transparent border-b border-yellow-400 focus:outline-none text-center w-full max-w-xs break-words px-2 py-1 rounded resize-none overflow-hidden"
 				  rows="1"
@@ -46,51 +36,20 @@
 				  @onblur="() => SaveList(list)">
 	</textarea>
 
-		<!-- Счётчик -->
+		<!-- Counter -->
 		<div class="text-xs text-gray-500">@list.Title.Length / @TitleMaxLength</div>
 	</div>
 
 
-	<!-- Контейнер всей страницы -->
+	<!-- Page container -->
 	<div class="flex flex-col gap-4 px-4 py-6 max-w-screen-xl mx-auto">
 
 		@foreach (var sub in sublists)
 		{
-			@* 			<div class="bg-white border border-yellow-300 rounded-xl shadow p-4 flex flex-col gap-3 w-full">
-	<input type="text"
-	class="text-lg font-semibold border-b w-full focus:outline-none focus:border-yellow-500 mb-2"
-	@bind="sub.Title"
-	@onblur="() => SaveSublist(sub)" />
-	@if (tasksBySublist.TryGetValue(sub.Id, out var subTasks))
-	{
-	<div class="flex flex-col gap-2 w-full">
-	@foreach (var task in subTasks)
-	{
-	<!-- Карточка задачи растягивается по ширине -->
-	<div class="w-full">
-	<TaskCard TaskItem="task" OnChanged="async ()=>{await SaveTask(task); await RefreshTasks(); }" />
-	</div>
-	}
-	</div>
-	}
-	<button @onclick="() => AddTask(sub.Id)"
-	class="self-start mt-2 w-9 h-9 flex items-center justify-center rounded-full bg-yellow-400 hover:bg-yellow-500 text-white text-xl font-bold shadow transition"
-	title="Добавить задачу">
-	+
-	</button>
-	</div> *@
 
 			<div class="bg-white border border-yellow-300 rounded-xl shadow p-4 flex flex-col gap-3 w-full">
-				<!-- Заголовок и кнопка удаления -->
+				<!-- Title + delete button -->
 				<div class="flex items-center justify-between gap-2 mb-2">
-
-
-
-					@* 			<input type="text"
-			maxlength="64"
-			class="text-lg font-semibold border-b w-full focus:outline-none focus:border-yellow-500"
-			@bind="sub.Title"
-			@onblur="() => SaveSublist(sub)" /> *@
 
 					<textarea maxlength="128"
 							  class="text-lg font-semibold border-b w-full focus:outline-none focus:border-yellow-500 resize-none overflow-hidden leading-snug"
@@ -100,8 +59,6 @@
 							  @onblur="() => SaveSublist(sub)">
 										</textarea>
 					<AutoResizeMarker></AutoResizeMarker>
-
-
 
 					<button class="text-red-500 hover:text-red-700 text-lg font-bold px-2"
 							@onclick="() =>{ showConfirmModal =true; sublistToDelete = sub.Id;}">
@@ -155,22 +112,18 @@
 	List<SublistModel> sublists = new();
 	Dictionary<Guid, List<TaskModel>> tasksBySublist = new();
 
-
-
 	private async Task HandleConfirmDelete(bool confirmed)
 	{
 		showConfirmModal = false;
 
 		if (!confirmed || sublistToDelete is null) return;
 
-		// удалить задачи + подсписок
 		if (tasksBySublist.TryGetValue((Guid)sublistToDelete, out var subTasks))
 		{
 			foreach (var task in subTasks)
 				await App.DeleteTask(task.Id);
 		}
 
-		// Удаляем сам подсписок
 		await App.DeleteSublist((Guid)sublistToDelete);
 
 		showConfirmModal = false;
@@ -205,26 +158,17 @@
 			.Max();
 	}
 
-
-
-
-
-
-
-
 	private void GoBack() => Nav.NavigateTo("/lists");
 
 	protected override async Task OnInitializedAsync()
 	{
 		SyncServ.OnSynced += RefreshSublists;
 		SyncServ.OnSynced += RefreshTasks;
-		SyncServ.OnSynced += UploadContentedible;
 
 
 		var found = await App.GetListById(Id);
 		list = found ?? new ListModel { Id = Id, Title = "" };
 
-		await UploadContentedible();
 
 		await RefreshSublists();
 
@@ -233,28 +177,12 @@
 		if (sublists.Count == 0) await AddSublist();
 	}
 
-
-	private async Task UploadContentedible()
-	{
-		// Установим значение contenteditable полей сразу после загрузки
-		await Task.Yield(); // Ждём пока компоненты появятся
-		await JS.InvokeVoidAsync("noteInterop.setContent", "[data-list-title]", list.Title);
-
-
-		var titleText = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-list-title]");
-		TitleLength = titleText.Length;
-
-		StateHasChanged();
-	}
-
-
 	private async Task RefreshTasks()
 	{
 		var allTasks = await App.GetAllTasks();
 
 		tasksBySublist = sublists.ToDictionary(
 			s => s.Id,
-			// s => allTasks.Where(t => t.SublistId == s.Id).OrderBy(t => t.Order).ToList()
 			s => allTasks.Where(t => t.SublistId == s.Id).OrderBy(t => t.IsCompleted).ThenBy(t=>t.Order).ToList()
 		);
 	}
@@ -266,7 +194,6 @@
 		.OrderBy(s => s.Order)
 		.ToList();
 	}
-
 
 	private async Task AddSublist()
 	{
@@ -306,43 +233,8 @@
 		await App.SaveTask(task);
 	}
 
-
-
-
 	private async Task Resize(ChangeEventArgs _)
 	{
 		await JS.InvokeVoidAsync("resizeTextareas");
 	}
-
-
-
-
-	//---------------------------------------below editable div code related only---------------------//
-
-
-	private ElementReference ListTitleRef;
-	private int MaxLength = 64;
-	private int TitleLength = 0;
-
-
-	private async Task SaveListTitle(FocusEventArgs _)
-	{
-		if (list == null) return;
-		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-list-title]");
-		list.Title = text.Trim();
-		await App.SaveList(list);
-	}
-
-	private async Task OnListTitleInput(ChangeEventArgs _)
-	{
-		var text = await JS.InvokeAsync<string>("noteInterop.getContent", "[data-list-title]");
-		TitleLength = text.Length;
-
-		if (TitleLength > MaxLength)
-		{
-			await JS.InvokeVoidAsync("noteInterop.preventLastInput", ListTitleRef);
-			TitleLength = MaxLength;
-		}
-	}
-
 }

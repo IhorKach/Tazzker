@@ -21,7 +21,6 @@ namespace Tazzker.Application.Services
                 Title = note.Title,
                 Body = note.Body,
                 CreatedAt = note.CreatedAt,
-                //IsDeleted = note.IsDeleted,
                 UpdatedAt = note.UpdatedAt
             };
         }
@@ -37,7 +36,6 @@ namespace Tazzker.Application.Services
                 Title = noteDTO.Title,
                 Body = noteDTO.Body,
                 CreatedAt = noteDTO.CreatedAt,
-                //IsDeleted = noteDTO.IsDeleted,
                 UpdatedAt = noteDTO.UpdatedAt
             };
         }

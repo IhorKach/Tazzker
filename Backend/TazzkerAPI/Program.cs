@@ -26,17 +26,6 @@ namespace TazzkerAPI
 			builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
-
-			builder.Services.AddScoped<ITaskItemRepository, TaskItemRepository>();
-			builder.Services.AddScoped<ITaskItemService, TaskItemService>();
-
-
-			builder.Services.AddScoped<ITaskListRepository, TaskListRepository>();
-			builder.Services.AddScoped<ITaskListService, TaskListService>();
-
-
-
-
 			builder.Services.AddScoped<IListRepository, ListRepository>();
 			builder.Services.AddScoped<IListService, ListService>();
 
@@ -50,15 +39,12 @@ namespace TazzkerAPI
 			builder.Services.AddScoped<INoteService, NoteService>();
 
 
-
 			builder.Services.AddHttpContextAccessor();
 			builder.Services.AddScoped<IUserContext, UserContext>();
 
 			builder.Services.AddControllers();
 
-
 			builder.Services.AddEndpointsApiExplorer();
-			//builder.Services.AddSwaggerGen();
 
 			builder.Services.AddSwaggerGen(options =>
 			{
@@ -92,27 +78,6 @@ namespace TazzkerAPI
 			});
 
 
-			//auth through  token
-
-			/*            builder.Services.AddAuthentication(options =>
-						{
-							options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-							options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-						})
-							.AddJwtBearer(options =>
-							{
-								options.TokenValidationParameters = new TokenValidationParameters
-								{
-									ValidateIssuer = false,
-									ValidateAudience = false,
-									ValidateIssuerSigningKey = true,
-									IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-									ClockSkew = TimeSpan.Zero
-								};
-							});
-
-			*/
-
 			//auth through cookie
 			builder.Services.AddAuthentication(options =>
 			{
@@ -125,7 +90,7 @@ namespace TazzkerAPI
 					{
 						OnMessageReceived = context =>
 						{
-							// Читаем JWT из куки
+							// Read JWT token from cookie
 							if (context.Request.Cookies.ContainsKey("access_token"))
 							{
 								context.Token = context.Request.Cookies["access_token"];
@@ -150,10 +115,6 @@ namespace TazzkerAPI
 				});
 
 
-
-
-
-
 			builder.WebHost.ConfigureKestrel(options =>
 			{
 				options.ListenAnyIP(5001, listenOptions =>
@@ -163,17 +124,14 @@ namespace TazzkerAPI
 			});
 
 
-
 			var frontendUrls = builder.Configuration.GetSection("ServerConfig:FrontendUrls").Get<string[]>();
 
-			//builder.WebHost.UseUrls("http://*:5173");
 			builder.Services.AddCors(options =>
 			{
 
 				options.AddPolicy("AllowFrontend", policy =>
 				{
 					policy
-						//.WithOrigins("https://localhost:7212", "https://tazzker.com", "https://10.0.0.84:7212", "https://10.0.0.113:7212")
 						.WithOrigins(frontendUrls!)
 						.AllowAnyHeader()
 						.AllowAnyMethod()

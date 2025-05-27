@@ -9,535 +9,192 @@
 @inject IJSRuntime JS
 @inject SyncService SyncService
 
-<h2 class="text-2xl font-bold mb-6 text-yellow-800 text-center">🐝 Welcome to Tazzker</h2>
 
 <!-- Переключатели Войти / Зарегистрироваться -->
-<div class="flex justify-center space-x-4">
-    <button @onclick="() => isLogin = true"
-            class=@($"px-4 py-2 rounded font-semibold transition-all {(isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
-        Sign in
-    </button>
-    <button @onclick="() => isLogin = false"
-            class=@($"px-4 py-2 rounded font-semibold transition-all {(!isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
-        Sign up
-    </button>
+<div class="flex justify-center space-x-4 mt-6">
+	<button @onclick="() => isLogin = true"
+			class=@($"px-4 py-2 rounded font-semibold transition-all {(isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
+		Sign in
+	</button>
+	<button @onclick="() => isLogin = false"
+			class=@($"px-4 py-2 rounded font-semibold transition-all {(!isLogin ? "bg-yellow-400 text-white" : "bg-yellow-100 text-yellow-700")}")>
+		Sign up
+	</button>
 </div>
 
 <!-- Форма -->
 <div class="mt-6 max-w-sm mx-auto bg-white p-6 rounded shadow space-y-4">
 
-        <input type="text"
-            maxlength="32"
-            class="w-full border p-2 rounded"
-            placeholder="Username"
-            value="@Username"
-            @oninput="OnUsernameChanged"/>
+	<input type="text"
+		   maxlength="32"
+		   class="w-full border p-2 rounded"
+		   placeholder="Username"
+		   value="@Username"
+		   @oninput="OnUsernameChanged" />
 
-           <input type="password"
-               maxlength="32"
-               class="w-full border p-2 rounded"
-               placeholder="Password"
-               value="@Password"
-               @oninput="OnPasswordChanged"/>
+	<input type="password"
+		   maxlength="32"
+		   class="w-full border p-2 rounded"
+		   placeholder="Password"
+		   value="@Password"
+		   @oninput="OnPasswordChanged" />
 
-    <button @onclick="Submit"
+	<button @onclick="Submit"
+			class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded">
+		@(isLogin ? "Sign In" : "Sign up")
+	</button>
 
-            class="w-full bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded">
-        @(isLogin ? "Sign In" : "Sign up")
-    </button>
-
-    @if (!string.IsNullOrWhiteSpace(Error) && (!string.IsNullOrEmpty(Username) || !string.IsNullOrEmpty(Password)))
-    {
-        <div class="text-red-600 text-sm text-center">@Error</div>
-    }
+	@if (!string.IsNullOrWhiteSpace(Error) && (!string.IsNullOrEmpty(Username) || !string.IsNullOrEmpty(Password)))
+	{
+		<div class="text-red-600 text-sm text-center">@Error</div>
+	}
 
 </div>
 
 @code {
-    private bool isLogin = true;
-    private string Username = "";
-    private string Password = "";
-
-    private string Error = "";
-
-
-    private void OnUsernameChanged(ChangeEventArgs e)
-    {
-        Username = e.Value?.ToString() ?? "";
-        ValidateInputs();
-    }
-
-    private void OnPasswordChanged(ChangeEventArgs e)
-    {
-        Password = e.Value?.ToString() ?? "";
-        ValidateInputs();
-    }
-
-
-    private void ValidateInputs()
-    {
-        if (string.IsNullOrWhiteSpace(Username))
-        {
-            Error = "Username cannot be empty.";
-            StateHasChanged();
-            return;
-        }
-
-        if (Username.Any(char.IsWhiteSpace))
-        {
-            Error = "Username cannot contain spaces.";
-            StateHasChanged();
-            return;
-        }
-
-        if (!Regex.IsMatch(Username, "^[a-zA-Z0-9_]+$"))
-        {
-            Error = "Only letters, numbers, and underscores are allowed.";
-            StateHasChanged();
-            return;
-        }
-
-        if (Username.Length < 3 || Username.Length > 20)
-        {
-            Error = "Username must be 3–20 characters.";
-            StateHasChanged();
-            return;
-        }
-
-        if (Password.Length < 6)
-        {
-            Error = "Password must be at least 6 characters.";
-            StateHasChanged();
-            return;
-        }
-
-        Error = ""; // всё валидно — убираем ошибку
-        StateHasChanged();
-    }
-
-
-
-
-    private async Task Submit()
-    {
-
-        ValidateInputs();
-        if (!string.IsNullOrWhiteSpace(Error)) return;
-
-        Error = "";
-
-
-        if (!await JS.InvokeAsync<bool>("isOnline"))
-        {
-            Error = "No internet connection.";
-            return;
-        }
-
-        object payload = isLogin
-            ? new { Username, Password }
-            : new { Username, Password };
-
-        var url = isLogin ? "/api/auth/login" : "/api/auth/register";
-
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
-                {
-                    Content = JsonContent.Create(payload)
-                };
-            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-
-            var response = await Http.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-            {
-                Error = await response.Content.ReadAsStringAsync();
-                return;
-            }
-
-            // Получаем userId
-            var userIdRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/userid");
-            userIdRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-            var userIdResponse = await Http.SendAsync(userIdRequest);
-
-            if (!userIdResponse.IsSuccessStatusCode)
-            {
-                Error = "Failed to obtain user ID.";
-                return;
-            }
-
-            var newUserId = await userIdResponse.Content.ReadAsStringAsync();
-            var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
-
-            if (string.IsNullOrWhiteSpace(storedUserId) || !isLogin)
-            {
-                // Первая авторизация
-                await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
-                await SyncService.PullAllAsync();
-            }
-            else if (storedUserId != newUserId)
-            {
-                // Новый аккаунт
-                await SyncService.ClearAllAsync();
-                await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
-                await SyncService.PullAllAsync();
-            }
-            else
-            {
-                // Тот же аккаунт
-                await SyncService.SyncAllAsync();
-                await SyncService.PullAllAsync();
-            }
-
-            // Отмечаем, что пользователь залогинен
-            await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
-
-            Nav.NavigateTo("/lists");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            Error = "Server connection error.";
-        }
-    }
-
-
-
-
-
-
-
-    //last stable version
-
-    // private async Task Submit()
-    // {
-    //     Error = "";
-
-    //     if (!isLogin && Password != ConfirmPassword)
-    //     {
-    //         Error = "Пароли не совпадают.";
-    //         return;
-    //     }
-
-    //     if (!await JS.InvokeAsync<bool>("isOnline"))
-    //     {
-    //         Error = "Нет подключения к интернету.";
-    //         return;
-    //     }
-
-
-    //     object payload = isLogin
-    //         ? new { Username, Password }
-    //         : new { Email, Username, Password };
-
-    //     var url = isLogin ? "/api/auth/login" : "/api/auth/register";
-
-    //     try
-    //     {
-    //         var request = new HttpRequestMessage(HttpMethod.Post, url)
-    //             {
-    //                 Content = JsonContent.Create(payload)
-    //             };
-    //         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-
-    //         var response = await Http.SendAsync(request);
-    //         if (!response.IsSuccessStatusCode)
-    //         {
-    //             Error = await response.Content.ReadAsStringAsync();
-    //             return;
-    //         }
-
-    //         Получаем userId
-    //         var userIdRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/userid");
-    //         userIdRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-    //         var userIdResponse = await Http.SendAsync(userIdRequest);
-
-    //         if (!userIdResponse.IsSuccessStatusCode)
-    //         {
-    //             Error = "Не удалось получить userId.";
-    //             return;
-    //         }
-
-    //         var newUserId = await userIdResponse.Content.ReadAsStringAsync();
-    //         var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
-
-    //         if (!isLogin || string.IsNullOrWhiteSpace(storedUserId))
-    //         {
-    //             регистрация или логин без текущего userId
-    //             await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
-    //             await SyncService.PullAllAsync();
-    //         }
-    //         else if (storedUserId != newUserId)
-    //         {
-    //             логин под другим аккаунтом
-    //             await SyncService.ClearAllAsync();
-    //             await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
-    //             await SyncService.PullAllAsync();
-    //         }
-    //         else
-    //         {
-    //             логин под тем же аккаунтом
-    //             await SyncService.SyncAllAsync();
-    //             await SyncService.PullAllAsync();
-    //         }
-    //         await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
-
-    //         Nav.NavigateTo("/lists");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex);
-    //         Error = "Ошибка соединения с сервером.";
-    //     }
-    // }
-
-
-
-
-
-
-
-
-
-
-
-    //outdated but working
-
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
-    //     if (!string.IsNullOrWhiteSpace(storedUserId))
-    //     {
-    //         Nav.NavigateTo("/lists");
-    //     }
-    // }
-
-    // private async Task Submit()
-    // {
-    //     Error = "";
-
-    //     if (!isLogin && Password != ConfirmPassword)
-    //     {
-    //         Error = "Пароли не совпадают.";
-    //         return;
-    //     }
-
-    //     object payload = isLogin
-    //         ? new { Username, Password }
-    //         : new { Email, Username, Password };
-
-    //     var url = isLogin ? "/api/auth/login" : "/api/auth/register";
-
-    //     try
-    //     {
-    //         var request = new HttpRequestMessage(HttpMethod.Post, url)
-    //             {
-    //                 Content = JsonContent.Create(payload)
-    //             };
-    //         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-
-    //         var response = await Http.SendAsync(request);
-
-    //         if (!response.IsSuccessStatusCode)
-    //         {
-    //             var errorText = await response.Content.ReadAsStringAsync();
-    //             Error = errorText;
-    //             return;
-    //         }
-
-    //         Получаем userId с сервера
-    //         var userIdRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/userid");
-    //         userIdRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-
-    //         var userIdResponse = await Http.SendAsync(userIdRequest);
-
-    //         if (!userIdResponse.IsSuccessStatusCode)
-    //         {
-    //             Error = "Не удалось получить userId.";
-    //             return;
-    //         }
-
-    //         var newUserId = await userIdResponse.Content.ReadAsStringAsync();
-    //         var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
-
-    //         if (storedUserId != null && storedUserId != newUserId)
-    //         {
-    //             await SyncService.ClearAllAsync();
-    //         }
-
-    //         await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
-    //         await SyncService.PullAllAsync();
-
-    //         Nav.NavigateTo("/lists");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex);
-    //         Error = "Ошибка соединения с сервером.";
-    //     }
-    // }
-}
-
-
-
-
-
-
-
-
-@* // start of old code*@
-
-@*
-    @code {
-    private bool isLogin = true;
-    private string Email = "";
-    private string Username = "";
-    private string Password = "";
-    private string ConfirmPassword = "";
-    private string Error = "";
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
-        if (!string.IsNullOrWhiteSpace(token))
-        {
-            Nav.NavigateTo("/lists");
-        }
-    }
-
-
-    private async Task Submit()
-    {
-        Error = "";
-
-        if (!isLogin && Password != ConfirmPassword)
-        {
-            Error = "Пароли не совпадают.";
-            return;
-        }
-
-        object payload = isLogin
-            ? new { Username, Password }
-            : new { Email, Username, Password };
-
-        var url = isLogin ? "/api/auth/login" : "/api/auth/register";
-
-        try
-        {
-            var response = await Http.PostAsJsonAsync(url, payload);
-            if (response.IsSuccessStatusCode)
-            {
-                // Читаем как объект, а не просто строку
-                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-                if (authResponse == null)
-                {
-                    Error = "Ошибка получения токенов.";
-                    return;
-                }
-
-                // 1. Парсим новый UserId из accessToken
-                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                var token = handler.ReadJwtToken(authResponse.AccessToken);
-                var extractedUserId = token.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-                if (string.IsNullOrWhiteSpace(extractedUserId))
-                {
-                    Error = "Ошибка в токене.";
-                    return;
-                }
-
-                // 2. Получаем текущий сохранённый UserId из localStorage
-                var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
-
-                // 3. Если UserId поменялся — чистим IndexedDB
-                if (storedUserId != null && storedUserId != extractedUserId)
-                {
-                    await SyncService.ClearAllAsync(); // Добавим этот метод чуть позже
-                }
-
-                // 4. Сохраняем новый токен и refresh токен
-                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", authResponse.AccessToken);
-                await JS.InvokeVoidAsync("localStorage.setItem", "refreshToken", authResponse.RefreshToken);
-
-                // 5. Сохраняем новый UserId
-                await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", extractedUserId);
-
-                // 6. Подтягиваем свежие данные
-                await SyncService.PullAllAsync();
-
-                // ✅ Уходим на списки
-                Nav.NavigateTo("/lists");
-            }
-            else
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                Error = error;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            Error = "Ошибка соединения с сервером.";
-        }
-    }
+	private bool isLogin = true;
+	private string Username = "";
+	private string Password = "";
+
+	private string Error = "";
+
+
+	private void OnUsernameChanged(ChangeEventArgs e)
+	{
+		Username = e.Value?.ToString() ?? "";
+		ValidateInputs();
+	}
+
+	private void OnPasswordChanged(ChangeEventArgs e)
+	{
+		Password = e.Value?.ToString() ?? "";
+		ValidateInputs();
+	}
+
+
+	private void ValidateInputs()
+	{
+		if (string.IsNullOrWhiteSpace(Username))
+		{
+			Error = "Username cannot be empty.";
+			StateHasChanged();
+			return;
+		}
+
+		if (Username.Any(char.IsWhiteSpace))
+		{
+			Error = "Username cannot contain spaces.";
+			StateHasChanged();
+			return;
+		}
+
+		if (!Regex.IsMatch(Username, "^[a-zA-Z0-9_]+$"))
+		{
+			Error = "Only letters, numbers, and underscores are allowed.";
+			StateHasChanged();
+			return;
+		}
+
+		if (Username.Length < 3)
+		{
+			Error = "Username must be at least 3 characters.";
+			StateHasChanged();
+			return;
+		}
+
+		if (Password.Length < 6)
+		{
+			Error = "Password must be at least 6 characters.";
+			StateHasChanged();
+			return;
+		}
+
+		Error = ""; // всё валидно — убираем ошибку
+		StateHasChanged();
+	}
+
+
+
+	private async Task Submit()
+	{
+
+		ValidateInputs();
+		if (!string.IsNullOrWhiteSpace(Error)) return;
+
+		Error = "";
+
+
+		if (!await JS.InvokeAsync<bool>("isOnline"))
+		{
+			Error = "No internet connection.";
+			return;
+		}
+
+		object payload = isLogin
+			? new { Username, Password }
+			: new { Username, Password };
+
+		var url = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+		try
+		{
+			var request = new HttpRequestMessage(HttpMethod.Post, url)
+				{
+					Content = JsonContent.Create(payload)
+				};
+			request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+			var response = await Http.SendAsync(request);
+			if (!response.IsSuccessStatusCode)
+			{
+				Error = await response.Content.ReadAsStringAsync();
+				return;
+			}
+
+			// Получаем userId
+			var userIdRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/userid");
+			userIdRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+			var userIdResponse = await Http.SendAsync(userIdRequest);
+
+			if (!userIdResponse.IsSuccessStatusCode)
+			{
+				Error = "Failed to obtain user ID.";
+				return;
+			}
+
+			var newUserId = await userIdResponse.Content.ReadAsStringAsync();
+			var storedUserId = await JS.InvokeAsync<string>("localStorage.getItem", "currentUserId");
+
+			if (string.IsNullOrWhiteSpace(storedUserId) || !isLogin)
+			{
+				// Первая авторизация
+				await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
+				await SyncService.PullAllAsync();
+			}
+			else if (storedUserId != newUserId)
+			{
+				// Новый аккаунт
+				await SyncService.ClearAllAsync();
+				await JS.InvokeVoidAsync("localStorage.setItem", "currentUserId", newUserId);
+				await SyncService.PullAllAsync();
+			}
+			else
+			{
+				// Тот же аккаунт
+				await SyncService.SyncAllAsync();
+				await SyncService.PullAllAsync();
+			}
+
+			// Отмечаем, что пользователь залогинен
+			await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
+
+			Nav.NavigateTo("/lists");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			Error = "Server connection error.";
+		}
+	}
 
 }
-
-
-
-
-*@
-
-@* // end of old code*@
-
-
-
-
-
-@*  //old submit method*@
-
-
-
-@*     // private async Task Submit()
-    // {
-    //     Error = "";
-
-    //     if (!isLogin && Password != ConfirmPassword)
-    //     {
-    //         Error = "Пароли не совпадают.";
-    //         return;
-    //     }
-
-    //     object payload = isLogin
-    //         ? new { Username, Password } логин по username
-    //         : new { Email, Username, Password };
-
-
-    //     var url = isLogin ? "/api/auth/login" : "/api/auth/register";
-
-    //     try
-    //     {
-    //         var response = await Http.PostAsJsonAsync(url, payload);
-    //         if (response.IsSuccessStatusCode)
-    //         {
-    //             var token = await response.Content.ReadAsStringAsync();
-    //             await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
-
-    //             ⬇️ Подтягиваем актуальные данные
-    //             await SyncService.PullAllAsync();
-
-    //             ✅ Редирект после логина
-    //             Nav.NavigateTo("/lists");
-    //         }
-    //         else
-    //         {
-    //             var error = await response.Content.ReadAsStringAsync();
-    //             Error = error;
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex);
-    //         Error = "Ошибка соединения с сервером.";
-    //     }
-    // } *@

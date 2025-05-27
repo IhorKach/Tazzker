@@ -8,8 +8,6 @@
 @inject SyncService SyncServ
 
 
-<!-- Верхняя панель навигации -->
-@* <div class="p-4 mb-4 bg-white border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20"> *@
 <div class="p-4 mb-4 bg-yellow-50 border-b justify-between flex items-center gap-4 shadow-sm sticky top-0 z-20">
 	@{
 		var backLable = "< Back";
@@ -20,15 +18,12 @@
 	</button>
 </div>
 
-<!-- Заголовок дня -->
 <h2 class="text-2xl sm:text-3xl font-bold text-yellow-800 text-center mb-6">
 	@date.ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)
 </h2>
 
-<!-- Контент -->
 <div class="px-4 py-6 space-y-6">
 
-	<!-- Задачи на день -->
 	<section class="space-y-3">
 		<h3 class="text-lg font-semibold text-yellow-700">📋 Today's Tasks</h3>
 
@@ -47,7 +42,6 @@
 		}
 	</section>
 
-	<!-- кнопка добавления задачи -->
 	<StickyAddButton OnClick="AddTask" />
 
 </div>
@@ -83,7 +77,6 @@
 		var allTasks = await App.GetAllTasks();
 
 		dayTasks = allTasks
-			// .Where(t => t.DueTime?.Date == date.Date && !t.IsDeleted).OrderBy(t => t.Order).ToList();
-			.Where(t => t.DueTime?.Date == date.Date && !t.PermDeleted/* IsDeleted */).OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Order).ToList();
+			.Where(t => t.DueTime?.Date == date.Date && !t.PermDeleted).OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Order).ToList();
 	}
 }

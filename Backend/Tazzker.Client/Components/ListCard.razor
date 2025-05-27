@@ -1,15 +1,4 @@
 ﻿@using Tazzker.Client.Data.Models;
-@* @if (ListItem != null)
-{
-	<div class="bg-white rounded-xl p-4 shadow border border-yellow-300 hover:shadow-md transition cursor-pointer"
-		 @onclick="() => OnClick.InvokeAsync(ListItem.Id)">
-		<div class="flex justify-between items-start mb-2">
-			<h3 class="text-lg font-semibold text-yellow-800 truncate">@ListItem.Title</h3>
-			<span class="text-xs text-gray-500 whitespace-nowrap">@TasksAmount задач</span>
-		</div>
-		<p class="text-sm text-gray-600 italic">Обновлено: @ListItem.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")</p>
-	</div>
-} *@
 
 @if (ListItem != null)
 {

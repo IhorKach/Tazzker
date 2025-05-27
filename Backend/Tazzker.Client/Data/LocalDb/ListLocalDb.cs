@@ -17,17 +17,14 @@ namespace Tazzker.Client.Data.LocalDb
         public async Task<List<ListModel>> GetAllAsync()
         {
             var all = await _db.GetAllAsync<ListModel>(StoreName);
-            return all.Where(x=>!x.PermDeleted/*IsDeleted*/).OrderByDescending(x=>x.UpdatedAt).ToList();
+            return all.Where(x=>!x.PermDeleted).OrderByDescending(x=>x.UpdatedAt).ToList();
         }
-        
-        
+
         public async Task<ListModel?> GetByIdAsync(Guid id)
         {
             var all = await GetAllAsync();
             return all.FirstOrDefault(x=>x.Id == id);
         }
-
-
 
         public async Task AddOrUpdateAsync(ListModel item)
         {
@@ -36,13 +33,11 @@ namespace Tazzker.Client.Data.LocalDb
             await _db.AddAsync(StoreName, item);
         }
 
-
         public async Task SoftDeleteAsync(Guid id)
         {
             var list = await GetByIdAsync(id);
             if (list is null)
                 return;
-            //list.IsDeleted = true;
             list.PermDeleted = true;
             await AddOrUpdateAsync(list);
         }

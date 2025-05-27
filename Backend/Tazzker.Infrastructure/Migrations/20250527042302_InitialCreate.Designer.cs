@@ -12,7 +12,7 @@ using Tazzker.Infrastructure.Contexts;
 namespace Tazzker.Infrastructure.Migrations
 {
     [DbContext(typeof(TazzkerDbContext))]
-    [Migration("20250525201500_InitialCreate")]
+    [Migration("20250527042302_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -145,81 +145,6 @@ namespace Tazzker.Infrastructure.Migrations
                     b.HasKey("TaskId");
 
                     b.ToTable("Tasks");
-                });
-
-            modelBuilder.Entity("Tazzker.Domain.TaskItem", b =>
-                {
-                    b.Property<Guid>("TaskId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("DueTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("ListId")
-                        .HasColumnType("uuid");
-
-                    b.Property<float>("Order")
-                        .HasColumnType("real");
-
-                    b.Property<Guid?>("ParentTaskId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ReminderAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("TaskId");
-
-                    b.ToTable("TaskItems");
-                });
-
-            modelBuilder.Entity("Tazzker.Domain.TaskList", b =>
-                {
-                    b.Property<Guid>("TaskListId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CalendarDay")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("TaskListId");
-
-                    b.ToTable("TaskLists");
                 });
 
             modelBuilder.Entity("Tazzker.Domain.User", b =>

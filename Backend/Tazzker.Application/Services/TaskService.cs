@@ -21,7 +21,6 @@ namespace Tazzker.Application.Services
                 Description = task.Description,
                 DueTime = task.DueTime,
                 IsCompleted = task.IsCompleted,
-                //IsDeleted = task.IsDeleted,
                 Order = task.Order,
                 ReminderAt = task.ReminderAt,
                 SublistId = task.SublistId,
@@ -47,7 +46,6 @@ namespace Tazzker.Application.Services
                 DueTime = taskDTO.DueTime,
                 ReminderAt = taskDTO.ReminderAt,
                 IsCompleted = taskDTO.IsCompleted,
-                //IsDeleted = taskDTO.IsDeleted
             };
         }
 

@@ -11,6 +11,5 @@ namespace Tazzker.Domain
         public string Body { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        //public bool IsDeleted { get; set; }
     }
 }
