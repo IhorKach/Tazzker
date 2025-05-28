@@ -11,7 +11,7 @@
     {
         SyncStatus.Status = SyncState.Idle;
 
-        await Task.Delay(500);
+        // await Task.Delay(500);
         await TrySync();
 
         _timer = new Timer(async _ => await TrySync(), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
@@ -22,14 +22,14 @@
         var isOnline = await JS.InvokeAsync<bool>("isOnline");
         if (!isOnline)
         {
-            Console.WriteLine("🌐 Нет подключения — пропускаем синхронизацию");
+            Console.WriteLine("No internet - no sync.");
             return;
         }
 
         var isLoggedIn = await JS.InvokeAsync<string>("localStorage.getItem", "isLoggedIn");
         if (isLoggedIn != "true")
         {
-            Console.WriteLine("🚫 Пользователь не вошел — синхронизация отменена");
+            Console.WriteLine("user logged out - sync cancelled.");
             return;
         }
 
@@ -43,7 +43,7 @@
         catch (Exception ex)
         {
             SyncStatus.Status = SyncState.Error;
-            Console.WriteLine($"❌ Sync failed: {ex.Message}");
+            Console.WriteLine($" Sync failed: {ex.Message}");
             await Task.Delay(3000);
         }
         finally

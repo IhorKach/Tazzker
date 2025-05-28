@@ -39,52 +39,119 @@ namespace Tazzker.Client.Services
 			});
 		}
 
+        /*		private async Task SafeRequest(Func<Task> operation, bool isRetry = false)
+                {
+                    try
+                    {
+                        await operation();
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        Console.WriteLine("Not authorized. Trying refresh...");
+
+                        bool refreshed = await TryRefreshToken();
+                        if (refreshed && !isRetry)
+                        {
+                            Console.WriteLine("Refresh Successful. repeating request...");
+                            await SafeRequest(operation, isRetry: true);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Refresh failed. heading to /auth");
+                            await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "false");
+                            _nav.NavigateTo("/auth", forceLoad: true);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Console.WriteLine($"Error request: {ex.Message}");
+                    }
+                }
+
+
+
+                private async Task<bool> TryRefreshToken()
+                {
+                    try
+                    {
+                        var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+                        refreshRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+                        var response = await _http.SendAsync(refreshRequest);
+
+                        Console.WriteLine($"Refresh response: {response.StatusCode}");
+
+                        return response.IsSuccessStatusCode;
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine($"Refresh error: {ex.Message}");
+                        return false;
+                    }
+                }*/
         private async Task SafeRequest(Func<Task> operation, bool isRetry = false)
         {
+            Console.WriteLine($"[SafeRequest] Started. isRetry = {isRetry}");
+
             try
             {
                 await operation();
+                Console.WriteLine("[SafeRequest] Operation completed successfully.");
             }
             catch (UnauthorizedAccessException)
             {
-                Console.WriteLine("Not authorized. Trying refresh...");
+                Console.WriteLine("[SafeRequest] Caught UnauthorizedAccessException.");
 
                 bool refreshed = await TryRefreshToken();
+                Console.WriteLine($"[SafeRequest] TryRefreshToken result: {refreshed}");
+
                 if (refreshed && !isRetry)
                 {
-                    Console.WriteLine("Refresh Successful. repeating request...");
-                    await SafeRequest(operation, isRetry: true); // recursionally repeating
+                    Console.WriteLine("[SafeRequest] Refresh successful, retrying operation.");
+                    await SafeRequest(operation, isRetry: true);
                 }
                 else
                 {
-                    Console.WriteLine("Refresh failed. heading to /auth");
+                    Console.WriteLine("[SafeRequest] Refresh failed or already retried. Redirecting to /auth.");
                     await JS.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "false");
-                    await JS.InvokeVoidAsync("localStorage.removeItem", "currentUserId");
-                    _nav.NavigateTo("/auth", forceLoad: true);
+                    _nav.NavigateTo("/auth");
                 }
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Error request: {ex.Message}");
+                Console.WriteLine($"[SafeRequest] HttpRequestException: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SafeRequest] Unexpected exception: {ex.Message}");
             }
         }
 
-        private async Task<bool> TryRefreshToken()
-		{
-			try
-			{
-				var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
-				refreshRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
-				var response = await _http.SendAsync(refreshRequest);
-				return response.IsSuccessStatusCode;
-			}
-			catch
-			{
-				return false;
-			}
-		}
 
-		public async Task SyncAllAsync()
+        private async Task<bool> TryRefreshToken()
+        {
+            try
+            {
+                Console.WriteLine("[TryRefreshToken] Sending refresh request...");
+
+                var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
+                refreshRequest.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+                var response = await _http.SendAsync(refreshRequest);
+
+                Console.WriteLine($"[TryRefreshToken] Response status: {response.StatusCode}");
+                var body = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[TryRefreshToken] Response body: {body}");
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TryRefreshToken] Exception: {ex.Message}");
+                return false;
+            }
+        }
+
+
+        public async Task SyncAllAsync()
 		{
 			await SafeRequest(async () =>
 			{
