@@ -89,38 +89,75 @@ namespace TazzkerAPI
 				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 			})
-				.AddJwtBearer(options =>
-				{
-					options.Events = new JwtBearerEvents
-					{
-						OnMessageReceived = context =>
-						{
-							// Read JWT token from cookie
-							if (context.Request.Cookies.ContainsKey("access_token"))
-							{
-								context.Token = context.Request.Cookies["access_token"];
-							}
-							return Task.CompletedTask;
-						}
-					};
+                .AddJwtBearer(options =>
+                {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            if (context.Request.Cookies.ContainsKey("access_token"))
+                            {
+                                context.Token = context.Request.Cookies["access_token"];
+                            }
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = context =>
+                        {
+                            if (context.Exception is SecurityTokenExpiredException)
+                            {
+                                context.NoResult();
+                                context.Response.StatusCode = 401;
+                                context.Response.ContentType = "application/json";
+                                return context.Response.WriteAsync("{\"message\": \"Token expired\"}");
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+                        ),
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+            /*.AddJwtBearer(options =>
+            {
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Read JWT token from cookie
+                        if (context.Request.Cookies.ContainsKey("access_token"))
+                        {
+                            context.Token = context.Request.Cookies["access_token"];
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
 
 
 
-					options.TokenValidationParameters = new TokenValidationParameters
-					{
-						ValidateIssuer = false,
-						ValidateAudience = false,
-						ValidateIssuerSigningKey = true,
-						IssuerSigningKey = new SymmetricSecurityKey(
-							Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-						),
-						ValidateLifetime = true,
-						ClockSkew = TimeSpan.Zero
-					};
-				});
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+                    ),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });*/
 
 
-			builder.WebHost.ConfigureKestrel(options =>
+            builder.WebHost.ConfigureKestrel(options =>
 			{
 				options.ListenAnyIP(5001, listenOptions =>
 				{
