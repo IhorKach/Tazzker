@@ -17,6 +17,11 @@ namespace TazzkerAPI
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
+			builder.Configuration
+			.SetBasePath(Directory.GetCurrentDirectory())
+			.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+			.AddEnvironmentVariables();
+
 			// Add services to the container.
 			var connectionString = builder.Configuration.GetConnectionString("Default");
 
