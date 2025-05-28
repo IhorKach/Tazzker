@@ -105,7 +105,7 @@ namespace TazzkerAPI
                         {
                             if (context.Exception is SecurityTokenExpiredException)
                             {
-                                context.NoResult();
+                                context.Fail("Token expired");
                                 context.Response.StatusCode = 401;
                                 context.Response.ContentType = "application/json";
                                 return context.Response.WriteAsync("{\"message\": \"Token expired\"}");
